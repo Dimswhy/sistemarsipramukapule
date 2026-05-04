@@ -56,6 +56,14 @@
 
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        
+        #toast {
+            transition: all 0.3s ease;
+            transform: translateY(100px);
+        }
+        #toast.show {
+            transform: translateY(0);
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900">
@@ -112,7 +120,10 @@
                 <div id="section-dashboard" class="section">
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8" id="stats-container"></div>
                     <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-                        <div class="p-6 border-b"><h3 class="font-bold text-slate-800">Aktivitas Terbaru</h3></div>
+                        <div class="p-6 border-b flex justify-between items-center">
+                            <h3 class="font-bold text-slate-800">Aktivitas Terbaru</h3>
+                            <span class="text-[10px] bg-slate-100 px-2 py-1 rounded font-bold text-slate-500">REAL-TIME</span>
+                        </div>
                         <div class="overflow-x-auto"><table class="w-full text-left"><tbody id="dashboard-recent-body"></tbody></table></div>
                     </div>
                 </div>
@@ -174,26 +185,31 @@
                 <form id="doc-form" class="space-y-4">
                     <input type="hidden" id="form-edit-index">
                     <div id="dynamic-form-fields" class="space-y-4"></div>
-                    <!-- Upload File Section -->
                     <div class="pt-4 border-t">
                         <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1 tracking-wider">Lampiran Dokumen (Image/PDF)</label>
                         <input type="file" id="file-upload" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" accept="image/*,application/pdf">
-                        <p class="text-[10px] text-slate-400 mt-1">*Maks 2MB (disimpan di browser)</p>
+                        <p class="text-[10px] text-slate-400 mt-1" id="file-info">*Maks 2MB (disimpan di browser)</p>
                     </div>
                 </form>
             </div>
             <div class="px-8 py-6 border-t bg-slate-50 flex justify-end gap-3">
-                <button onclick="closeModal()" class="px-6 py-2 text-slate-600 font-bold">Batal</button>
-                <button onclick="handleSave()" id="btn-save" class="px-8 py-2 bg-blue-600 text-white rounded-xl font-bold flex items-center gap-2">
+                <button onclick="closeModal()" class="px-6 py-2 text-slate-600 font-bold hover:text-slate-900 transition-all">Batal</button>
+                <button onclick="handleSave()" id="btn-save" class="px-8 py-2 bg-blue-600 text-white rounded-xl font-bold flex items-center gap-2 hover:bg-blue-700 transition-all">
                     <span>Simpan Data</span>
                 </button>
             </div>
         </div>
     </div>
 
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 z-[200] bg-slate-900 text-white px-6 py-3 rounded-2xl shadow-2xl text-sm font-bold hidden flex items-center gap-3">
+        <div id="toast-icon" class="p-1 rounded-full bg-blue-500"><i data-lucide="check" class="w-4 h-4"></i></div>
+        <span id="toast-msg">Pesan berhasil disimpan</span>
+    </div>
+
     <script>
         let currentTab = 'dashboard';
-        let archiveData = JSON.parse(localStorage.getItem('archiveData_rsia_final')) || {
+        let archiveData = JSON.parse(localStorage.getItem('archiveData_rsia_v2')) || {
             'surat-masuk': [], 'surat-keluar': [], 'sk': [], 'notulen': []
         };
 
@@ -202,13 +218,13 @@
                 title: 'Surat Masuk', color: 'blue', icon: 'mail',
                 headers: ['Agenda', 'No. Surat', 'Asal Surat', 'Perihal', 'Aksi'],
                 fields: [
-                    { name: 'no_agenda', label: 'Nomor Agenda', type: 'text' },
+                    { name: 'no_agenda', label: 'Nomor Agenda', type: 'text', placeholder: 'cth: 001/2024' },
                     { name: 'tgl_terima', label: 'Tanggal Diterima', type: 'date' },
-                    { name: 'terima_dari', label: 'Diterima Dari (Asal)', type: 'text' },
-                    { name: 'no_surat', label: 'Nomor Surat', type: 'text' },
+                    { name: 'terima_dari', label: 'Diterima Dari (Asal)', type: 'text', placeholder: 'Dinas Kesehatan Surabaya' },
+                    { name: 'no_surat', label: 'Nomor Surat', type: 'text', placeholder: '440/123/436.7.2/2024' },
                     { name: 'tgl_surat', label: 'Tanggal Surat', type: 'date' },
-                    { name: 'perihal', label: 'Perihal', type: 'text' },
-                    { name: 'ditujukan', label: 'Diteruskan Kepada', type: 'text' },
+                    { name: 'perihal', label: 'Perihal', type: 'text', placeholder: 'Undangan Rapat Koordinasi' },
+                    { name: 'ditujukan', label: 'Diteruskan Kepada', type: 'text', placeholder: 'Direktur, Yan Medis' },
                     { name: 'disposisi', label: 'Instruksi Disposisi', type: 'textarea' }
                 ]
             },
@@ -217,17 +233,17 @@
                 headers: ['Tgl Surat', 'No. Surat', 'Tujuan', 'Perihal', 'Aksi'],
                 fields: [
                     { name: 'tgl_surat', label: 'Tanggal Surat', type: 'date' },
-                    { name: 'no_surat', label: 'Nomor Surat', type: 'text' },
-                    { name: 'kepada', label: 'Tujuan', type: 'text' },
-                    { name: 'perihal', label: 'Perihal', type: 'text' }
+                    { name: 'no_surat', label: 'Nomor Surat', type: 'text', placeholder: '005/RSIA-IBI/V/2024' },
+                    { name: 'kepada', label: 'Tujuan', type: 'text', placeholder: 'Ketua PC IBI Surabaya' },
+                    { name: 'perihal', label: 'Perihal', type: 'text', placeholder: 'Laporan Bulanan' }
                 ]
             },
             'sk': {
                 title: 'Surat Keputusan', color: 'purple', icon: 'file-check',
                 headers: ['No. SK', 'Tentang', 'Tanggal', 'Aksi'],
                 fields: [
-                    { name: 'no_sk', label: 'Nomor SK', type: 'text' },
-                    { name: 'tentang', label: 'Tentang', type: 'text' },
+                    { name: 'no_sk', label: 'Nomor SK', type: 'text', placeholder: '001/SK/DIR/RSIA-IBI/2024' },
+                    { name: 'tentang', label: 'Tentang', type: 'text', placeholder: 'Penetapan Struktur Organisasi' },
                     { name: 'tanggal', label: 'Tanggal SK', type: 'date' }
                 ]
             },
@@ -235,12 +251,16 @@
                 title: 'Notulen Rapat', color: 'amber', icon: 'clipboard-list',
                 headers: ['Agenda', 'Tanggal', 'Pimpinan', 'Aksi'],
                 fields: [
-                    { name: 'agenda', label: 'Agenda Rapat', type: 'text' },
+                    { name: 'agenda', label: 'Agenda Rapat', type: 'text', placeholder: 'Rapat Persiapan Akreditasi' },
                     { name: 'tanggal', label: 'Tanggal Rapat', type: 'date' },
-                    { name: 'pimpinan', label: 'Pimpinan Rapat', type: 'text' },
+                    { name: 'pimpinan', label: 'Pimpinan Rapat', type: 'text', placeholder: 'dr. H. Muhammad, Sp.OG' },
                     { name: 'hasil', label: 'Hasil Ringkasan', type: 'textarea' }
                 ]
             }
+        };
+
+        window.onload = function() {
+            init();
         };
 
         function init() {
@@ -268,12 +288,25 @@
             lucide.createIcons();
         }
 
+        function showToast(msg, type = 'success') {
+            const toast = document.getElementById('toast');
+            const icon = document.getElementById('toast-icon');
+            document.getElementById('toast-msg').innerText = msg;
+            icon.className = type === 'success' ? 'p-1 rounded-full bg-emerald-500' : 'p-1 rounded-full bg-red-500';
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.classList.add('hidden'), 300);
+            }, 3000);
+        }
+
         function renderDashboard() {
             document.getElementById('page-title').innerText = 'Dashboard';
             const stats = [['surat-masuk', 'blue'], ['surat-keluar', 'emerald'], ['sk', 'purple'], ['notulen', 'amber']];
             document.getElementById('stats-container').innerHTML = stats.map(([key, col]) => `
-                <div class="bg-white p-6 rounded-2xl border border-slate-100 flex items-center gap-5 cursor-pointer hover:shadow-md transition-all" onclick="switchTab('${key}')">
-                    <div class="text-${col}-600 bg-${col}-50 w-14 h-14 rounded-2xl flex items-center justify-center">
+                <div class="bg-white p-6 rounded-2xl border border-slate-100 flex items-center gap-5 cursor-pointer hover:shadow-lg transition-all group" onclick="switchTab('${key}')">
+                    <div class="text-${col}-600 bg-${col}-50 w-14 h-14 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110">
                         <i data-lucide="${config[key].icon}" class="w-7 h-7"></i>
                     </div>
                     <div>
@@ -289,16 +322,22 @@
             all.sort((a,b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0));
             
             if (all.length === 0) {
-                recentBody.innerHTML = '<tr><td colspan="4" class="p-8 text-center text-slate-400 italic">Belum ada aktivitas data</td></tr>';
+                recentBody.innerHTML = '<tr><td colspan="4" class="p-12 text-center text-slate-400 italic">Belum ada aktivitas data</td></tr>';
             } else {
-                all.slice(0, 5).forEach(item => {
+                all.slice(0, 8).forEach(item => {
+                    const title = item.perihal || item.tentang || item.agenda || 'Tanpa Judul';
                     recentBody.innerHTML += `
-                        <tr class="hover:bg-slate-50 border-b border-slate-50">
-                            <td class="px-6 py-4 font-bold text-sm text-slate-700">${item.perihal || item.tentang || item.agenda}</td>
-                            <td class="px-6 py-4"><span class="text-[10px] font-bold px-2 py-1 rounded bg-${config[item._cat].color}-50 text-${config[item._cat].color}-600 uppercase">${config[item._cat].title}</span></td>
-                            <td class="px-6 py-4 text-xs text-slate-500">${item.tgl_terima || item.tgl_surat || item.tanggal}</td>
+                        <tr class="hover:bg-slate-50 border-b border-slate-50 transition-colors">
                             <td class="px-6 py-4">
-                                <button onclick="viewDetailFromGlobal('${item._cat}', ${item._idx})" class="text-blue-600 font-bold text-xs hover:underline">Lihat</button>
+                                <div class="flex items-center gap-3">
+                                    <div class="w-2 h-2 rounded-full bg-${config[item._cat].color}-500"></div>
+                                    <span class="font-bold text-sm text-slate-700 truncate max-w-[200px]">${title}</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4"><span class="text-[10px] font-bold px-2 py-1 rounded bg-${config[item._cat].color}-50 text-${config[item._cat].color}-600 uppercase whitespace-nowrap">${config[item._cat].title}</span></td>
+                            <td class="px-6 py-4 text-xs text-slate-500">${item.tgl_terima || item.tgl_surat || item.tanggal || '-'}</td>
+                            <td class="px-6 py-4 text-right">
+                                <button onclick="viewDetailFromGlobal('${item._cat}', ${item._idx})" class="text-blue-600 font-bold text-xs hover:underline">Lihat Detail</button>
                             </td>
                         </tr>`;
                 });
@@ -308,10 +347,11 @@
         function renderTable() {
             document.getElementById('page-title').innerText = config[currentTab].title;
             const head = document.getElementById('table-headers');
-            head.innerHTML = `<tr class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">${config[currentTab].headers.map(h => `<th class="px-6 py-4">${h}</th>`).join('')}</tr>`;
+            head.innerHTML = `<tr class="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-left">${config[currentTab].headers.map(h => `<th class="px-6 py-4">${h}</th>`).join('')}</tr>`;
             
             const body = document.getElementById('table-body');
             body.innerHTML = '';
+            
             if (archiveData[currentTab].length === 0) {
                 body.innerHTML = `<tr><td colspan="${config[currentTab].headers.length}" class="p-12 text-center text-slate-400 italic">Tidak ada data di kategori ini</td></tr>`;
                 return;
@@ -324,16 +364,46 @@
                 else if (currentTab === 'sk') row = `<td>${item.no_sk}</td><td>${item.tentang}</td><td>${item.tanggal}</td>`;
                 else if (currentTab === 'notulen') row = `<td>${item.agenda}</td><td>${item.tanggal}</td><td>${item.pimpinan}</td>`;
 
-                body.innerHTML += `<tr class="hover:bg-slate-50 transition-colors">
+                body.innerHTML += `<tr class="hover:bg-slate-50 transition-colors group">
                     ${row.split('</td>').map(c => c ? `<td class="px-6 py-4 text-sm text-slate-600">${c.replace('<td>','')}</td>` : '').join('')}
-                    <td class="px-6 py-4 flex gap-2">
-                        <button onclick="viewDetail(${idx})" class="p-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100" title="Lihat"><i data-lucide="eye" class="w-4 h-4"></i></button>
-                        <button onclick="editData(${idx})" class="p-1.5 bg-amber-50 text-amber-600 rounded-lg hover:bg-amber-100" title="Edit"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
-                        <button onclick="deleteData(${idx})" class="p-1.5 bg-red-50 text-red-500 rounded-lg hover:bg-red-100" title="Hapus"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                    <td class="px-6 py-4">
+                        <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onclick="viewDetail(${idx})" class="p-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100" title="Lihat"><i data-lucide="eye" class="w-4 h-4"></i></button>
+                            <button onclick="editData(${idx})" class="p-1.5 bg-amber-50 text-amber-600 rounded-lg hover:bg-amber-100" title="Edit"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
+                            <button onclick="deleteData(${idx})" class="p-1.5 bg-red-50 text-red-500 rounded-lg hover:bg-red-100" title="Hapus"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        </div>
                     </td>
                 </tr>`;
             });
             lucide.createIcons();
+        }
+
+        function filterTable() {
+            const input = document.getElementById('table-search');
+            const filter = input.value.toLowerCase();
+            const rows = document.getElementById('table-body').getElementsByTagName('tr');
+            for (let i = 0; i < rows.length; i++) {
+                const cells = rows[i].getElementsByTagName('td');
+                let found = false;
+                for (let j = 0; j < cells.length - 1; j++) {
+                    if (cells[j].innerText.toLowerCase().indexOf(filter) > -1) { found = true; break; }
+                }
+                rows[i].style.display = found ? "" : "none";
+            }
+        }
+
+        function viewDetailFromGlobal(cat, idx) {
+            currentTab = cat;
+            switchTab(cat);
+            viewDetail(idx);
+        }
+
+        function closeDetailModal() {
+            document.getElementById('detail-modal').classList.remove('modal-active');
+        }
+
+        function closeModal() {
+            document.getElementById('form-modal').classList.remove('modal-active');
         }
 
         function viewDetail(idx) {
@@ -343,22 +413,6 @@
             if (currentTab === 'surat-masuk') {
                 content.innerHTML = `
                     <div class="border-[3px] border-black p-4 md:p-8 bg-white text-black font-serif">
-                        <!-- KOP SURAT ASLI RSIA IBI (MODIFIKASI LOGO) -->
-                        <div class="flex items-center border-b-[4px] border-black pb-4 mb-6">
-                            <div class="w-24 h-24 flex-shrink-0 flex items-center justify-center">
-                                <img src="https://upload.wikimedia.org/wikipedia/commons/e/e0/Logo_Ikatan_Bidan_Indonesia.png" class="max-w-full max-h-full object-contain" alt="Logo IBI">
-                            </div>
-                            <div class="flex-1 text-center px-4">
-                                <h2 class="text-sm font-bold uppercase">Ikatan Bidan Indonesia (IBI)</h2>
-                                <h1 class="text-2xl md:text-3xl font-black uppercase leading-tight mt-1">RSIA IBI SURABAYA</h1>
-                                <p class="text-xs font-semibold">Jl. Dupak No. 15-17, Surabaya, Jawa Timur</p>
-                                <p class="text-[10px]">Telp: (031) 3522234 | Fax: (031) 3522235</p>
-                            </div>
-                            <div class="w-24 h-24 flex-shrink-0 flex items-center justify-center">
-                                <img src="https://upload.wikimedia.org/wikipedia/id/8/8c/Logo_KARS.png" class="max-w-full max-h-full object-contain" alt="Logo Akreditasi">
-                            </div>
-                        </div>
-
                         <h3 class="text-center font-black text-2xl underline mb-6 uppercase">Lembar Disposisi</h3>
                         
                         <table class="disposisi-table">
@@ -396,7 +450,7 @@
                                 </td>
                                 <td colspan="2" class="p-6">
                                     <p class="text-[10px] font-bold uppercase underline mb-3">Instruksi / Disposisi:</p>
-                                    <div class="italic font-serif leading-relaxed text-base min-h-[200px]">
+                                    <div class="italic font-serif leading-relaxed text-base min-h-[200px] whitespace-pre-line">
                                         ${item.disposisi || ''}
                                     </div>
                                     <div class="mt-12 flex justify-end">
@@ -411,25 +465,9 @@
                             </tr>
                         </table>
                         
-                        ${item.fileData ? `
-                        <div class="mt-8 no-print border-t pt-4">
-                            <h4 class="text-xs font-bold uppercase mb-2 text-blue-600 flex items-center gap-2"><i data-lucide="paperclip" class="w-4 h-4"></i> Lampiran Terdeteksi</h4>
-                            <div class="p-4 bg-slate-50 rounded-xl border border-dashed border-slate-300">
-                                ${item.fileType?.startsWith('image/') ? 
-                                    `<img src="${item.fileData}" class="max-w-full h-auto rounded shadow-sm">` :
-                                    `<div class="flex items-center gap-3 p-4 bg-white rounded-lg border">
-                                        <i data-lucide="file-text" class="w-10 h-10 text-red-500"></i>
-                                        <div>
-                                            <p class="font-bold text-sm">Dokumen Terlampir</p>
-                                            <a href="${item.fileData}" download="lampiran-${item.no_agenda || 'surat'}" class="text-blue-600 text-xs hover:underline">Download File Lampiran</a>
-                                        </div>
-                                    </div>`
-                                }
-                            </div>
-                        </div>` : ''}
+                        ${item.fileData ? renderAttachment(item) : ''}
                     </div>`;
             } else {
-                // Tampilan Detail untuk kategori lain
                 content.innerHTML = `
                     <div class="p-12 bg-white">
                         <div class="flex justify-between items-start mb-8 border-b-2 border-slate-800 pb-4">
@@ -439,34 +477,50 @@
                             </div>
                             <img src="https://upload.wikimedia.org/wikipedia/commons/e/e0/Logo_Ikatan_Bidan_Indonesia.png" class="h-16">
                         </div>
-                        
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                             ${config[currentTab].fields.map(f => `
                                 <div class="space-y-1">
                                     <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">${f.label}</label>
-                                    <p class="text-lg font-bold text-slate-800 border-b border-slate-100 pb-1">${item[f.name] || '-'}</p>
+                                    <p class="text-lg font-bold text-slate-800 border-b border-slate-100 pb-1 whitespace-pre-line">${item[f.name] || '-'}</p>
                                 </div>
                             `).join('')}
                         </div>
-
-                        ${item.fileData ? `
-                        <div class="mt-12 no-print">
-                            <h4 class="text-xs font-bold uppercase mb-4 text-blue-600">File Lampiran</h4>
-                            <div class="rounded-2xl overflow-hidden border">
-                                ${item.fileType?.startsWith('image/') ? 
-                                    `<img src="${item.fileData}" class="w-full h-auto">` :
-                                    `<div class="p-8 bg-slate-50 text-center">
-                                        <i data-lucide="file-text" class="w-16 h-16 text-slate-300 mx-auto mb-4"></i>
-                                        <p class="font-bold mb-4">File PDF/Dokumen</p>
-                                        <a href="${item.fileData}" download="arsip-${item.no_sk || item.agenda || 'data'}" class="inline-block bg-blue-600 text-white px-6 py-2 rounded-xl font-bold">Download Dokumen</a>
-                                    </div>`
-                                }
-                            </div>
-                        </div>` : ''}
+                        ${item.fileData ? renderAttachment(item) : ''}
                     </div>`;
             }
             document.getElementById('detail-modal').classList.add('modal-active');
             lucide.createIcons();
+        }
+
+        function renderAttachment(item) {
+            return `
+                <div class="mt-8 no-print border-t pt-6">
+                    <h4 class="text-xs font-bold uppercase mb-4 text-blue-600 flex items-center gap-2">
+                        <i data-lucide="paperclip" class="w-4 h-4"></i> Lampiran Dokumen
+                    </h4>
+                    <div class="p-4 bg-slate-50 rounded-2xl border border-dashed border-slate-300">
+                        ${item.fileType?.startsWith('image/') ? 
+                            `<div class="flex flex-col gap-4">
+                                <img src="${item.fileData}" class="max-w-full h-auto rounded-xl shadow-lg border">
+                                <a href="${item.fileData}" download="lampiran-image" class="text-center bg-white border px-4 py-2 rounded-lg text-sm font-bold text-slate-600 hover:bg-slate-50 transition-all flex items-center justify-center gap-2">
+                                    <i data-lucide="download" class="w-4 h-4"></i> Download Gambar
+                                </a>
+                             </div>` :
+                            `<div class="flex items-center justify-between p-6 bg-white rounded-2xl border shadow-sm">
+                                <div class="flex items-center gap-4">
+                                    <div class="p-3 bg-red-50 text-red-500 rounded-xl"><i data-lucide="file-text" class="w-8 h-8"></i></div>
+                                    <div>
+                                        <p class="font-bold text-slate-800">File PDF Terlampir</p>
+                                        <p class="text-xs text-slate-500">Klik tombol di samping untuk mengunduh</p>
+                                    </div>
+                                </div>
+                                <a href="${item.fileData}" download="lampiran-dokumen" class="bg-blue-600 text-white px-6 py-2 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-blue-200">
+                                    <i data-lucide="download" class="w-4 h-4"></i> Download PDF
+                                </a>
+                            </div>`
+                        }
+                    </div>
+                </div>`;
         }
 
         function openModal() {
@@ -474,13 +528,13 @@
             document.getElementById('modal-title').innerText = 'Tambah ' + config[currentTab].title;
             document.getElementById('form-edit-index').value = '';
             document.getElementById('file-upload').value = '';
-            
+            document.getElementById('file-info').className = "text-[10px] text-slate-400 mt-1";
             document.getElementById('dynamic-form-fields').innerHTML = config[currentTab].fields.map(f => `
                 <div>
                     <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1 tracking-wider">${f.label}</label>
                     ${f.type === 'textarea' ? 
-                        `<textarea name="${f.name}" class="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" rows="3"></textarea>` : 
-                        `<input type="${f.type}" name="${f.name}" class="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">`}
+                        `<textarea name="${f.name}" class="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all" rows="4"></textarea>` : 
+                        `<input type="${f.type}" name="${f.name}" class="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all">`}
                 </div>`).join('');
             document.getElementById('doc-form').reset();
             m.classList.add('modal-active');
@@ -495,82 +549,67 @@
             config[currentTab].fields.forEach(f => {
                 if(form.elements[f.name]) form.elements[f.name].value = item[f.name] || '';
             });
+            if (item.fileData) {
+                document.getElementById('file-info').innerText = "File lama tersimpan. Upload baru untuk mengganti.";
+                document.getElementById('file-info').className = "text-[10px] text-blue-500 font-bold mt-1";
+            }
+        }
+
+        function deleteData(idx) {
+            if (confirm('Apakah Anda yakin ingin menghapus data ini?')) {
+                archiveData[currentTab].splice(idx, 1);
+                saveData(); renderTab(); showToast('Data berhasil dihapus');
+            }
         }
 
         async function handleSave() {
             const btn = document.getElementById('btn-save');
             const fileInput = document.getElementById('file-upload');
             const editIdx = document.getElementById('form-edit-index').value;
+            const form = document.getElementById('doc-form');
+            const formData = new FormData(form);
+            const entry = { timestamp: new Date().toISOString() };
+            let hasEmpty = false;
             
-            btn.disabled = true;
-            btn.innerHTML = `<span class="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></span> Simpan...`;
+            config[currentTab].fields.forEach(f => {
+                const val = formData.get(f.name);
+                if (!val && f.name !== 'disposisi' && f.name !== 'hasil') hasEmpty = true;
+                entry[f.name] = val;
+            });
+
+            if (hasEmpty) { showToast('Mohon lengkapi kolom utama!', 'error'); return; }
+
+            btn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Menghubungkan...';
+            btn.disabled = true; lucide.createIcons();
 
             try {
-                const entry = {
-                    timestamp: new Date().toISOString()
-                };
-                
-                const form = document.getElementById('doc-form');
-                new FormData(form).forEach((v, k) => entry[k] = v);
-
-                // Handle File Upload
-                if (fileInput.files.length > 0) {
+                if (fileInput.files[0]) {
                     const file = fileInput.files[0];
-                    if (file.size > 2 * 1024 * 1024) throw new Error("File terlalu besar! Maksimal 2MB.");
-                    
-                    const base64 = await toBase64(file);
-                    entry.fileData = base64;
+                    if (file.size > 2 * 1024 * 1024) throw new Error("File terlalu besar (Maks 2MB)");
+                    entry.fileData = await toBase64(file);
                     entry.fileType = file.type;
-                    entry.fileName = file.name;
-                } else if (editIdx !== '' && archiveData[currentTab][editIdx].fileData) {
-                    // Simpan file lama jika sedang edit dan tidak ada file baru
+                } else if (editIdx !== "" && archiveData[currentTab][editIdx].fileData) {
                     entry.fileData = archiveData[currentTab][editIdx].fileData;
                     entry.fileType = archiveData[currentTab][editIdx].fileType;
                 }
-
-                if (editIdx !== '') {
-                    archiveData[currentTab][editIdx] = entry;
-                } else {
-                    archiveData[currentTab].unshift(entry);
-                }
-                
-                localStorage.setItem('archiveData_rsia_final', JSON.stringify(archiveData));
-                closeModal();
-                renderTab();
-            } catch (err) {
-                alert(err.message);
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = `<span>Simpan Data</span>`;
-            }
+                if (editIdx === "") archiveData[currentTab].unshift(entry);
+                else archiveData[currentTab][editIdx] = entry;
+                saveData(); closeModal(); renderTab();
+                showToast(editIdx === "" ? 'Data berhasil ditambahkan' : 'Data berhasil diperbarui');
+            } catch (err) { showToast(err.message, 'error'); } 
+            finally { btn.innerHTML = '<span>Simpan Data</span>'; btn.disabled = false; }
         }
 
-        const toBase64 = file => new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = error => reject(error);
-        });
-
-        function deleteData(idx) {
-            if(confirm('Hapus data ini secara permanen?')) {
-                archiveData[currentTab].splice(idx, 1);
-                localStorage.setItem('archiveData_rsia_final', JSON.stringify(archiveData));
-                renderTab();
-            }
-        }
-
-        function closeModal() { document.getElementById('form-modal').classList.remove('modal-active'); }
-        function closeDetailModal() { document.getElementById('detail-modal').classList.remove('modal-active'); }
-        function viewDetailFromGlobal(c, i) { currentTab = c; renderTab(); viewDetail(i); }
-        function filterTable() {
-            const val = document.getElementById('table-search').value.toLowerCase();
-            document.querySelectorAll('#table-body tr').forEach(r => {
-                r.style.display = r.innerText.toLowerCase().includes(val) ? '' : 'none';
+        function toBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
             });
         }
 
-        window.onload = init;
+        function saveData() { localStorage.setItem('archiveData_rsia_v2', JSON.stringify(archiveData)); }
     </script>
 </body>
 </html>
