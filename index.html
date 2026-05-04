@@ -18,9 +18,8 @@
             
             .print-container { 
                 width: 210mm !important;
-                height: 297mm !important;
                 margin: 0 auto !important;
-                padding: 15mm !important;
+                padding: 10mm !important;
                 border: none !important;
                 display: block !important;
             }
@@ -50,7 +49,7 @@
         }
         .disposisi-table td {
             border: 1px solid black;
-            padding: 12px;
+            padding: 10px;
             vertical-align: top;
             color: black;
         }
@@ -93,7 +92,6 @@
             </nav>
         </aside>
 
-        <!-- Main Content -->
         <main class="flex-1 flex flex-col min-w-0">
             <header class="h-20 bg-white border-b flex items-center justify-between px-8 sticky top-0 z-10 shadow-sm">
                 <div>
@@ -149,11 +147,11 @@
             <div class="px-8 py-4 border-b bg-white flex justify-between items-center sticky top-0 z-10 no-print">
                 <div class="flex items-center gap-3">
                     <div class="p-2 bg-blue-50 text-blue-600 rounded-lg"><i data-lucide="printer" class="w-5 h-5"></i></div>
-                    <h3 class="text-lg font-bold text-slate-800">Pratinjau Lembar Disposisi</h3>
+                    <h3 class="text-lg font-bold text-slate-800">Pratinjau Dokumen</h3>
                 </div>
                 <div class="flex gap-2">
                     <button id="btn-print" onclick="window.print()" class="bg-slate-900 text-white px-5 py-2 rounded-xl flex items-center gap-2 font-bold text-sm hover:bg-black transition-all">
-                        <i data-lucide="printer" class="w-4 h-4"></i> Cetak Dokumen
+                        <i data-lucide="printer" class="w-4 h-4"></i> Cetak
                     </button>
                     <button onclick="closeDetailModal()" class="p-2 hover:bg-slate-100 rounded-full transition-all">
                         <i data-lucide="x" class="w-6 h-6 text-slate-400"></i>
@@ -176,18 +174,26 @@
                 <form id="doc-form" class="space-y-4">
                     <input type="hidden" id="form-edit-index">
                     <div id="dynamic-form-fields" class="space-y-4"></div>
+                    <!-- Upload File Section -->
+                    <div class="pt-4 border-t">
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1 tracking-wider">Lampiran Dokumen (Image/PDF)</label>
+                        <input type="file" id="file-upload" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" accept="image/*,application/pdf">
+                        <p class="text-[10px] text-slate-400 mt-1">*Maks 2MB (disimpan di browser)</p>
+                    </div>
                 </form>
             </div>
             <div class="px-8 py-6 border-t bg-slate-50 flex justify-end gap-3">
                 <button onclick="closeModal()" class="px-6 py-2 text-slate-600 font-bold">Batal</button>
-                <button onclick="saveData()" class="px-8 py-2 bg-blue-600 text-white rounded-xl font-bold">Simpan Data</button>
+                <button onclick="handleSave()" id="btn-save" class="px-8 py-2 bg-blue-600 text-white rounded-xl font-bold flex items-center gap-2">
+                    <span>Simpan Data</span>
+                </button>
             </div>
         </div>
     </div>
 
     <script>
         let currentTab = 'dashboard';
-        let archiveData = JSON.parse(localStorage.getItem('archiveData_rsia_v2')) || {
+        let archiveData = JSON.parse(localStorage.getItem('archiveData_rsia_final')) || {
             'surat-masuk': [], 'surat-keluar': [], 'sk': [], 'notulen': []
         };
 
@@ -280,7 +286,7 @@
             recentBody.innerHTML = '';
             let all = [];
             Object.keys(archiveData).forEach(cat => archiveData[cat].forEach((item, idx) => all.push({...item, _cat: cat, _idx: idx})));
-            all.sort((a,b) => new Date(b.tgl_terima || b.tgl_surat || b.tanggal) - new Date(a.tgl_terima || a.tgl_surat || a.tanggal));
+            all.sort((a,b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0));
             
             if (all.length === 0) {
                 recentBody.innerHTML = '<tr><td colspan="4" class="p-8 text-center text-slate-400 italic">Belum ada aktivitas data</td></tr>';
@@ -291,7 +297,9 @@
                             <td class="px-6 py-4 font-bold text-sm text-slate-700">${item.perihal || item.tentang || item.agenda}</td>
                             <td class="px-6 py-4"><span class="text-[10px] font-bold px-2 py-1 rounded bg-${config[item._cat].color}-50 text-${config[item._cat].color}-600 uppercase">${config[item._cat].title}</span></td>
                             <td class="px-6 py-4 text-xs text-slate-500">${item.tgl_terima || item.tgl_surat || item.tanggal}</td>
-                            <td class="px-6 py-4"><button onclick="viewDetailFromGlobal('${item._cat}', ${item._idx})" class="text-blue-600 font-bold text-xs hover:underline">Lihat</button></td>
+                            <td class="px-6 py-4">
+                                <button onclick="viewDetailFromGlobal('${item._cat}', ${item._idx})" class="text-blue-600 font-bold text-xs hover:underline">Lihat</button>
+                            </td>
                         </tr>`;
                 });
             }
@@ -319,9 +327,9 @@
                 body.innerHTML += `<tr class="hover:bg-slate-50 transition-colors">
                     ${row.split('</td>').map(c => c ? `<td class="px-6 py-4 text-sm text-slate-600">${c.replace('<td>','')}</td>` : '').join('')}
                     <td class="px-6 py-4 flex gap-2">
-                        <button onclick="viewDetail(${idx})" class="p-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100"><i data-lucide="eye" class="w-4 h-4"></i></button>
-                        <button onclick="editData(${idx})" class="p-1.5 bg-amber-50 text-amber-600 rounded-lg hover:bg-amber-100"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
-                        <button onclick="deleteData(${idx})" class="p-1.5 bg-red-50 text-red-500 rounded-lg hover:bg-red-100"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        <button onclick="viewDetail(${idx})" class="p-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100" title="Lihat"><i data-lucide="eye" class="w-4 h-4"></i></button>
+                        <button onclick="editData(${idx})" class="p-1.5 bg-amber-50 text-amber-600 rounded-lg hover:bg-amber-100" title="Edit"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
+                        <button onclick="deleteData(${idx})" class="p-1.5 bg-red-50 text-red-500 rounded-lg hover:bg-red-100" title="Hapus"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                     </td>
                 </tr>`;
             });
@@ -334,88 +342,128 @@
             
             if (currentTab === 'surat-masuk') {
                 content.innerHTML = `
-                    <div class="border-[3px] border-black p-6 bg-white text-black font-serif h-full">
-                        <!-- KOP SURAT DUA LOGO -->
-                        <div class="flex items-center border-b-[5px] border-black pb-4 mb-6">
-                            <div class="w-28 h-28 flex-shrink-0 flex items-center justify-center">
-                                <img src="https://en.wikipedia.org/wiki/File:Pramuka,_Tunas_Kelapa.svg" class="max-w-full max-h-full object-contain" alt="Logo Kiri" onerror="this.src='https://via.placeholder.com/100?text=LOGO'">
+                    <div class="border-[3px] border-black p-4 md:p-8 bg-white text-black font-serif">
+                        <!-- KOP SURAT ASLI RSIA IBI (MODIFIKASI LOGO) -->
+                        <div class="flex items-center border-b-[4px] border-black pb-4 mb-6">
+                            <div class="w-24 h-24 flex-shrink-0 flex items-center justify-center">
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/e/e0/Logo_Ikatan_Bidan_Indonesia.png" class="max-w-full max-h-full object-contain" alt="Logo IBI">
                             </div>
                             <div class="flex-1 text-center px-4">
-                                <h1 class="text-xl font-bold uppercase leading-none">GERAKAN PRAMUKA</h1>
-                                <h2 class="text-2xl font-black uppercase leading-tight mt-1">KWARTIR RANTING PULE</h2>
-                                <p class="text-xs font-bold mt-1 uppercase">Kantor Korwilcam Bidang Pendidikan Kecamatan Pule</p>
-                                <p class="text-[10px] font-semibold">Telp: (+62)853-3157-6472 | Fax: (66362)</p>
+                                <h2 class="text-sm font-bold uppercase">Ikatan Bidan Indonesia (IBI)</h2>
+                                <h1 class="text-2xl md:text-3xl font-black uppercase leading-tight mt-1">RSIA IBI SURABAYA</h1>
+                                <p class="text-xs font-semibold">Jl. Dupak No. 15-17, Surabaya, Jawa Timur</p>
+                                <p class="text-[10px]">Telp: (031) 3522234 | Fax: (031) 3522235</p>
                             </div>
-                            <div class="w-28 h-28 flex-shrink-0 flex items-center justify-center">
-                                <img src="https://pramukadiy.or.id/ini-dia-logo-wosm-terbaru-serupa-tapi-tak-sama-slogan-menjadi-ready-for-life/wosm-pos/" alt="Logo Kanan" onerror="this.src='https://via.placeholder.com/100?text=LOGO'">
+                            <div class="w-24 h-24 flex-shrink-0 flex items-center justify-center">
+                                <img src="https://upload.wikimedia.org/wikipedia/id/8/8c/Logo_KARS.png" class="max-w-full max-h-full object-contain" alt="Logo Akreditasi">
                             </div>
                         </div>
 
-                        <h3 class="text-center font-black text-2xl underline mb-8 uppercase italic tracking-widest">Lembar Disposisi</h3>
+                        <h3 class="text-center font-black text-2xl underline mb-6 uppercase">Lembar Disposisi</h3>
                         
                         <table class="disposisi-table">
                             <tr>
-                                <td width="30%"><strong>No. Agenda:</strong><br><span class="text-2xl font-black">#${item.no_agenda || '-'}</span></td>
+                                <td width="30%"><strong>No. Agenda:</strong><br><span class="text-xl font-black">#${item.no_agenda || '-'}</span></td>
                                 <td width="30%"><strong>Tgl. Terima:</strong><br>${item.tgl_terima || '-'}</td>
-                                <td width="40%" class="text-[11px] leading-tight italic text-gray-700">
-                                    Segera proses instruksi di bawah ini dan kembalikan ke sekretariat jika telah selesai.
+                                <td width="40%" class="text-[10px] leading-tight italic">
+                                    Segera proses instruksi di bawah ini dan kembalikan ke sekretariat.
                                 </td>
                             </tr>
                             <tr>
                                 <td><strong>Asal Surat:</strong></td>
-                                <td colspan="2" class="uppercase font-bold text-lg">${item.terima_dari || '-'}</td>
+                                <td colspan="2" class="uppercase font-bold">${item.terima_dari || '-'}</td>
                             </tr>
                             <tr>
                                 <td><strong>No. Surat:</strong></td>
-                                <td colspan="2">${item.no_surat || '-'} <span class="ml-4 font-normal italic">(Tgl: ${item.tgl_surat || '-'})</span></td>
+                                <td colspan="2">${item.no_surat || '-'} <span class="ml-4 italic">(Tgl: ${item.tgl_surat || '-'})</span></td>
                             </tr>
                             <tr>
-                                <td colspan="3" class="bg-gray-50">
-                                    <p class="text-[10px] font-bold uppercase mb-1">Perihal:</p>
-                                    <p class="text-base font-bold italic">${item.perihal || '-'}</p>
+                                <td colspan="3" class="bg-slate-50">
+                                    <p class="text-[9px] font-bold uppercase mb-1">Perihal:</p>
+                                    <p class="text-sm font-bold italic">${item.perihal || '-'}</p>
                                 </td>
                             </tr>
                             <tr>
-                                <td class="h-[400px]">
+                                <td class="min-h-[300px]">
                                     <p class="text-[10px] font-bold uppercase underline mb-4">Diteruskan Kepada:</p>
-                                    <div class="space-y-4 text-xs uppercase font-bold">
-                                        <div class="flex items-center gap-3"><div class="w-4 h-4 border-2 border-black ${item.ditujukan?.toLowerCase().includes('direktur') ? 'bg-black' : ''}"></div> Direktur</div>
-                                        <div class="flex items-center gap-3"><div class="w-4 h-4 border-2 border-black ${item.ditujukan?.toLowerCase().includes('umum') ? 'bg-black' : ''}"></div> Kasubag Umum</div>
-                                        <div class="flex items-center gap-3"><div class="w-4 h-4 border-2 border-black ${item.ditujukan?.toLowerCase().includes('medis') ? 'bg-black' : ''}"></div> Yan Medis</div>
-                                        <div class="flex items-center gap-3"><div class="w-4 h-4 border-2 border-black ${item.ditujukan?.toLowerCase().includes('keuangan') ? 'bg-black' : ''}"></div> Keuangan</div>
-                                        <div class="mt-10 pt-4 border-t border-dotted border-black text-[9px] lowercase italic font-normal">Ket: ${item.ditujukan || '-'}</div>
+                                    <div class="space-y-3 text-[11px] uppercase font-bold">
+                                        <div class="flex items-center gap-2"><div class="w-3.5 h-3.5 border border-black ${item.ditujukan?.toLowerCase().includes('direktur') ? 'bg-black' : ''}"></div> Direktur</div>
+                                        <div class="flex items-center gap-2"><div class="w-3.5 h-3.5 border border-black ${item.ditujukan?.toLowerCase().includes('umum') ? 'bg-black' : ''}"></div> Kasubag Umum</div>
+                                        <div class="flex items-center gap-2"><div class="w-3.5 h-3.5 border border-black ${item.ditujukan?.toLowerCase().includes('medis') ? 'bg-black' : ''}"></div> Yan Medis</div>
+                                        <div class="flex items-center gap-2"><div class="w-3.5 h-3.5 border border-black ${item.ditujukan?.toLowerCase().includes('keuangan') ? 'bg-black' : ''}"></div> Keuangan</div>
+                                        <div class="mt-6 pt-2 border-t border-dotted border-black text-[9px] normal-case font-normal italic">Ket: ${item.ditujukan || '-'}</div>
                                     </div>
                                 </td>
                                 <td colspan="2" class="p-6">
                                     <p class="text-[10px] font-bold uppercase underline mb-3">Instruksi / Disposisi:</p>
-                                    <div class="italic font-serif leading-relaxed text-lg min-h-[300px]">
+                                    <div class="italic font-serif leading-relaxed text-base min-h-[200px]">
                                         ${item.disposisi || ''}
                                     </div>
                                     <div class="mt-12 flex justify-end">
-                                        <div class="w-56 text-center">
-                                            <p class="text-xs font-bold uppercase mb-16">Tanda Tangan,</p>
+                                        <div class="w-48 text-center">
+                                            <p class="text-[10px] font-bold uppercase mb-12">Direktur RSIA IBI,</p>
                                             <div class="border-t border-black pt-1">
-                                                <p class="text-[10px] font-bold uppercase">DIREKTUR RSIA IBI</p>
+                                                <p class="text-[10px] font-bold">( ........................................ )</p>
                                             </div>
                                         </div>
                                     </div>
                                 </td>
                             </tr>
                         </table>
+                        
+                        ${item.fileData ? `
+                        <div class="mt-8 no-print border-t pt-4">
+                            <h4 class="text-xs font-bold uppercase mb-2 text-blue-600 flex items-center gap-2"><i data-lucide="paperclip" class="w-4 h-4"></i> Lampiran Terdeteksi</h4>
+                            <div class="p-4 bg-slate-50 rounded-xl border border-dashed border-slate-300">
+                                ${item.fileType?.startsWith('image/') ? 
+                                    `<img src="${item.fileData}" class="max-w-full h-auto rounded shadow-sm">` :
+                                    `<div class="flex items-center gap-3 p-4 bg-white rounded-lg border">
+                                        <i data-lucide="file-text" class="w-10 h-10 text-red-500"></i>
+                                        <div>
+                                            <p class="font-bold text-sm">Dokumen Terlampir</p>
+                                            <a href="${item.fileData}" download="lampiran-${item.no_agenda || 'surat'}" class="text-blue-600 text-xs hover:underline">Download File Lampiran</a>
+                                        </div>
+                                    </div>`
+                                }
+                            </div>
+                        </div>` : ''}
                     </div>`;
             } else {
+                // Tampilan Detail untuk kategori lain
                 content.innerHTML = `
-                <div class="p-12 bg-white min-h-screen">
-                    <h2 class="text-3xl font-black uppercase mb-8 border-b-4 border-slate-800 pb-2">${config[currentTab].title}</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
-                        ${config[currentTab].fields.map(f => `
-                            <div class="space-y-1">
-                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">${f.label}</label>
-                                <p class="text-xl font-bold text-slate-800 border-b border-slate-100 pb-2">${item[f.name] || '-'}</p>
+                    <div class="p-12 bg-white">
+                        <div class="flex justify-between items-start mb-8 border-b-2 border-slate-800 pb-4">
+                            <div>
+                                <h2 class="text-3xl font-black uppercase text-slate-800">${config[currentTab].title}</h2>
+                                <p class="text-slate-500 text-sm font-medium">RSIA IBI Digital Archive</p>
                             </div>
-                        `).join('')}
-                    </div>
-                </div>`;
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/e/e0/Logo_Ikatan_Bidan_Indonesia.png" class="h-16">
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            ${config[currentTab].fields.map(f => `
+                                <div class="space-y-1">
+                                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">${f.label}</label>
+                                    <p class="text-lg font-bold text-slate-800 border-b border-slate-100 pb-1">${item[f.name] || '-'}</p>
+                                </div>
+                            `).join('')}
+                        </div>
+
+                        ${item.fileData ? `
+                        <div class="mt-12 no-print">
+                            <h4 class="text-xs font-bold uppercase mb-4 text-blue-600">File Lampiran</h4>
+                            <div class="rounded-2xl overflow-hidden border">
+                                ${item.fileType?.startsWith('image/') ? 
+                                    `<img src="${item.fileData}" class="w-full h-auto">` :
+                                    `<div class="p-8 bg-slate-50 text-center">
+                                        <i data-lucide="file-text" class="w-16 h-16 text-slate-300 mx-auto mb-4"></i>
+                                        <p class="font-bold mb-4">File PDF/Dokumen</p>
+                                        <a href="${item.fileData}" download="arsip-${item.no_sk || item.agenda || 'data'}" class="inline-block bg-blue-600 text-white px-6 py-2 rounded-xl font-bold">Download Dokumen</a>
+                                    </div>`
+                                }
+                            </div>
+                        </div>` : ''}
+                    </div>`;
             }
             document.getElementById('detail-modal').classList.add('modal-active');
             lucide.createIcons();
@@ -425,6 +473,8 @@
             const m = document.getElementById('form-modal');
             document.getElementById('modal-title').innerText = 'Tambah ' + config[currentTab].title;
             document.getElementById('form-edit-index').value = '';
+            document.getElementById('file-upload').value = '';
+            
             document.getElementById('dynamic-form-fields').innerHTML = config[currentTab].fields.map(f => `
                 <div>
                     <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1 tracking-wider">${f.label}</label>
@@ -447,27 +497,65 @@
             });
         }
 
-        function saveData() {
-            const form = document.getElementById('doc-form');
+        async function handleSave() {
+            const btn = document.getElementById('btn-save');
+            const fileInput = document.getElementById('file-upload');
             const editIdx = document.getElementById('form-edit-index').value;
-            const entry = {};
-            new FormData(form).forEach((v, k) => entry[k] = v);
             
-            if (editIdx !== '') {
-                archiveData[currentTab][editIdx] = entry;
-            } else {
-                archiveData[currentTab].unshift(entry);
+            btn.disabled = true;
+            btn.innerHTML = `<span class="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></span> Simpan...`;
+
+            try {
+                const entry = {
+                    timestamp: new Date().toISOString()
+                };
+                
+                const form = document.getElementById('doc-form');
+                new FormData(form).forEach((v, k) => entry[k] = v);
+
+                // Handle File Upload
+                if (fileInput.files.length > 0) {
+                    const file = fileInput.files[0];
+                    if (file.size > 2 * 1024 * 1024) throw new Error("File terlalu besar! Maksimal 2MB.");
+                    
+                    const base64 = await toBase64(file);
+                    entry.fileData = base64;
+                    entry.fileType = file.type;
+                    entry.fileName = file.name;
+                } else if (editIdx !== '' && archiveData[currentTab][editIdx].fileData) {
+                    // Simpan file lama jika sedang edit dan tidak ada file baru
+                    entry.fileData = archiveData[currentTab][editIdx].fileData;
+                    entry.fileType = archiveData[currentTab][editIdx].fileType;
+                }
+
+                if (editIdx !== '') {
+                    archiveData[currentTab][editIdx] = entry;
+                } else {
+                    archiveData[currentTab].unshift(entry);
+                }
+                
+                localStorage.setItem('archiveData_rsia_final', JSON.stringify(archiveData));
+                closeModal();
+                renderTab();
+            } catch (err) {
+                alert(err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<span>Simpan Data</span>`;
             }
-            
-            localStorage.setItem('archiveData_rsia_v2', JSON.stringify(archiveData));
-            closeModal();
-            renderTab();
         }
+
+        const toBase64 = file => new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = error => reject(error);
+        });
 
         function deleteData(idx) {
             if(confirm('Hapus data ini secara permanen?')) {
                 archiveData[currentTab].splice(idx, 1);
-                localStorage.setItem('archiveData_rsia_v2', JSON.stringify(archiveData));
+                localStorage.setItem('archiveData_rsia_final', JSON.stringify(archiveData));
                 renderTab();
             }
         }
