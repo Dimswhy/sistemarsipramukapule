@@ -9,9 +9,9 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        
         .modal-active { display: flex !important; }
         
-        /* Print Settings for A4 */
         @media print {
             .no-print { display: none !important; }
             body { background: white !important; padding: 0 !important; margin: 0 !important; }
@@ -22,7 +22,6 @@
                 margin: 0 auto !important;
                 padding: 15mm !important;
                 border: none !important;
-                box-shadow: none !important;
                 display: block !important;
             }
             
@@ -39,13 +38,9 @@
                 box-shadow: none !important;
                 border: none !important;
                 width: 100% !important;
-                max-width: none !important;
             }
 
-            @page { 
-                size: A4; 
-                margin: 0; 
-            }
+            @page { size: A4; margin: 0; }
         }
 
         .disposisi-table {
@@ -58,12 +53,7 @@
             padding: 12px;
             vertical-align: top;
             color: black;
-            font-size: 14px;
         }
-
-        .kop-header h1 { font-size: 18px; }
-        .kop-header h2 { font-size: 22px; }
-        .kop-header p { font-size: 11px; }
 
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
@@ -120,6 +110,7 @@
             </header>
 
             <div id="content-area" class="p-8 overflow-y-auto w-full">
+                <!-- Dashboard Section -->
                 <div id="section-dashboard" class="section">
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8" id="stats-container"></div>
                     <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
@@ -128,17 +119,18 @@
                     </div>
                 </div>
 
+                <!-- Table Section -->
                 <div id="section-table" class="section hidden">
                     <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
                         <div class="relative w-full md:w-96">
                             <i data-lucide="search" class="absolute left-3 top-2.5 w-4 h-4 text-slate-400"></i>
-                            <input type="text" id="table-search" onkeyup="filterTable()" class="block w-full pl-10 pr-4 py-2 bg-white border rounded-xl" placeholder="Cari data...">
+                            <input type="text" id="table-search" onkeyup="filterTable()" class="block w-full pl-10 pr-4 py-2 bg-white border rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Cari data...">
                         </div>
-                        <button onclick="openModal()" class="w-full md:w-auto bg-blue-600 text-white px-6 py-2.5 rounded-xl font-bold flex items-center justify-center gap-2">
+                        <button onclick="openModal()" class="w-full md:w-auto bg-blue-600 text-white px-6 py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-blue-700 transition-all">
                             <i data-lucide="plus" class="w-5 h-5"></i> Tambah Data
                         </button>
                     </div>
-                    <div class="bg-white rounded-2xl shadow-xl border overflow-hidden">
+                    <div class="bg-white rounded-2xl shadow-sm border overflow-hidden">
                         <div class="overflow-x-auto">
                             <table class="min-w-full divide-y divide-slate-100">
                                 <thead class="bg-slate-50" id="table-headers"></thead>
@@ -157,11 +149,11 @@
             <div class="px-8 py-4 border-b bg-white flex justify-between items-center sticky top-0 z-10 no-print">
                 <div class="flex items-center gap-3">
                     <div class="p-2 bg-blue-50 text-blue-600 rounded-lg"><i data-lucide="printer" class="w-5 h-5"></i></div>
-                    <h3 class="text-lg font-bold text-slate-800">Pratinjau Disposisi A4</h3>
+                    <h3 class="text-lg font-bold text-slate-800">Pratinjau Lembar Disposisi</h3>
                 </div>
                 <div class="flex gap-2">
                     <button id="btn-print" onclick="window.print()" class="bg-slate-900 text-white px-5 py-2 rounded-xl flex items-center gap-2 font-bold text-sm hover:bg-black transition-all">
-                        <i data-lucide="printer" class="w-4 h-4"></i> Cetak A4
+                        <i data-lucide="printer" class="w-4 h-4"></i> Cetak Dokumen
                     </button>
                     <button onclick="closeDetailModal()" class="p-2 hover:bg-slate-100 rounded-full transition-all">
                         <i data-lucide="x" class="w-6 h-6 text-slate-400"></i>
@@ -170,10 +162,6 @@
             </div>
             
             <div id="detail-content" class="bg-white print-container"></div>
-            
-            <div class="px-8 py-4 border-t bg-slate-50 flex justify-end no-print">
-                <button onclick="closeDetailModal()" class="px-6 py-2 bg-white border border-slate-200 text-slate-700 rounded-xl font-bold hover:bg-slate-100 transition-all">Tutup Pratinjau</button>
-            </div>
         </div>
     </div>
 
@@ -208,8 +196,8 @@
                 title: 'Surat Masuk', color: 'blue', icon: 'mail',
                 headers: ['Agenda', 'No. Surat', 'Asal Surat', 'Perihal', 'Aksi'],
                 fields: [
-                    { name: 'tgl_terima', label: 'Tanggal Diterima', type: 'date' },
                     { name: 'no_agenda', label: 'Nomor Agenda', type: 'text' },
+                    { name: 'tgl_terima', label: 'Tanggal Diterima', type: 'date' },
                     { name: 'terima_dari', label: 'Diterima Dari (Asal)', type: 'text' },
                     { name: 'no_surat', label: 'Nomor Surat', type: 'text' },
                     { name: 'tgl_surat', label: 'Tanggal Surat', type: 'date' },
@@ -244,8 +232,7 @@
                     { name: 'agenda', label: 'Agenda Rapat', type: 'text' },
                     { name: 'tanggal', label: 'Tanggal Rapat', type: 'date' },
                     { name: 'pimpinan', label: 'Pimpinan Rapat', type: 'text' },
-                    { name: 'lokasi', label: 'Lokasi Rapat', type: 'text' },
-                    { name: 'hasil', label: 'Hasil Rapat', type: 'textarea' }
+                    { name: 'hasil', label: 'Hasil Ringkasan', type: 'textarea' }
                 ]
             }
         };
@@ -253,7 +240,7 @@
         function init() {
             lucide.createIcons();
             document.getElementById('current-date').innerText = new Intl.DateTimeFormat('id-ID', { dateStyle: 'full' }).format(new Date());
-            renderTab();
+            switchTab('dashboard');
         }
 
         function switchTab(tabId) {
@@ -277,14 +264,14 @@
 
         function renderDashboard() {
             document.getElementById('page-title').innerText = 'Dashboard';
-            const stats = [['masuk', 'surat-masuk'], ['keluar', 'surat-keluar'], ['sk', 'sk'], ['notulen', 'notulen']];
-            document.getElementById('stats-container').innerHTML = stats.map(([label, key]) => `
-                <div class="bg-white p-6 rounded-2xl border flex items-center gap-5 cursor-pointer hover:shadow-lg transition-all" onclick="switchTab('${key}')">
-                    <div class="text-${config[key].color}-600 bg-${config[key].color}-50 w-14 h-14 rounded-2xl flex items-center justify-center">
+            const stats = [['surat-masuk', 'blue'], ['surat-keluar', 'emerald'], ['sk', 'purple'], ['notulen', 'amber']];
+            document.getElementById('stats-container').innerHTML = stats.map(([key, col]) => `
+                <div class="bg-white p-6 rounded-2xl border border-slate-100 flex items-center gap-5 cursor-pointer hover:shadow-md transition-all" onclick="switchTab('${key}')">
+                    <div class="text-${col}-600 bg-${col}-50 w-14 h-14 rounded-2xl flex items-center justify-center">
                         <i data-lucide="${config[key].icon}" class="w-7 h-7"></i>
                     </div>
                     <div>
-                        <h3 class="text-slate-500 text-xs font-bold uppercase">${config[key].title}</h3>
+                        <h3 class="text-slate-500 text-xs font-bold uppercase tracking-wider">${config[key].title}</h3>
                         <p class="text-3xl font-extrabold text-slate-800">${archiveData[key].length}</p>
                     </div>
                 </div>`).join('');
@@ -294,15 +281,20 @@
             let all = [];
             Object.keys(archiveData).forEach(cat => archiveData[cat].forEach((item, idx) => all.push({...item, _cat: cat, _idx: idx})));
             all.sort((a,b) => new Date(b.tgl_terima || b.tgl_surat || b.tanggal) - new Date(a.tgl_terima || a.tgl_surat || a.tanggal));
-            all.slice(0, 5).forEach(item => {
-                recentBody.innerHTML += `
-                    <tr class="hover:bg-slate-50 border-b">
-                        <td class="px-6 py-4 font-bold text-sm">${item.perihal || item.tentang || item.agenda}</td>
-                        <td class="px-6 py-4"><span class="text-[10px] font-bold px-2 py-1 rounded bg-${config[item._cat].color}-50 text-${config[item._cat].color}-600 uppercase">${config[item._cat].title}</span></td>
-                        <td class="px-6 py-4 text-xs text-slate-500">${item.tgl_terima || item.tgl_surat || item.tanggal}</td>
-                        <td class="px-6 py-4"><button onclick="viewDetailFromGlobal('${item._cat}', ${item._idx})" class="text-blue-600 font-bold text-xs">Lihat</button></td>
-                    </tr>`;
-            });
+            
+            if (all.length === 0) {
+                recentBody.innerHTML = '<tr><td colspan="4" class="p-8 text-center text-slate-400 italic">Belum ada aktivitas data</td></tr>';
+            } else {
+                all.slice(0, 5).forEach(item => {
+                    recentBody.innerHTML += `
+                        <tr class="hover:bg-slate-50 border-b border-slate-50">
+                            <td class="px-6 py-4 font-bold text-sm text-slate-700">${item.perihal || item.tentang || item.agenda}</td>
+                            <td class="px-6 py-4"><span class="text-[10px] font-bold px-2 py-1 rounded bg-${config[item._cat].color}-50 text-${config[item._cat].color}-600 uppercase">${config[item._cat].title}</span></td>
+                            <td class="px-6 py-4 text-xs text-slate-500">${item.tgl_terima || item.tgl_surat || item.tanggal}</td>
+                            <td class="px-6 py-4"><button onclick="viewDetailFromGlobal('${item._cat}', ${item._idx})" class="text-blue-600 font-bold text-xs hover:underline">Lihat</button></td>
+                        </tr>`;
+                });
+            }
         }
 
         function renderTable() {
@@ -312,6 +304,11 @@
             
             const body = document.getElementById('table-body');
             body.innerHTML = '';
+            if (archiveData[currentTab].length === 0) {
+                body.innerHTML = `<tr><td colspan="${config[currentTab].headers.length}" class="p-12 text-center text-slate-400 italic">Tidak ada data di kategori ini</td></tr>`;
+                return;
+            }
+
             archiveData[currentTab].forEach((item, idx) => {
                 let row = '';
                 if (currentTab === 'surat-masuk') row = `<td>#${item.no_agenda}</td><td>${item.no_surat}</td><td>${item.terima_dari}</td><td>${item.perihal}</td>`;
@@ -319,87 +316,86 @@
                 else if (currentTab === 'sk') row = `<td>${item.no_sk}</td><td>${item.tentang}</td><td>${item.tanggal}</td>`;
                 else if (currentTab === 'notulen') row = `<td>${item.agenda}</td><td>${item.tanggal}</td><td>${item.pimpinan}</td>`;
 
-                body.innerHTML += `<tr class="hover:bg-slate-50">
+                body.innerHTML += `<tr class="hover:bg-slate-50 transition-colors">
                     ${row.split('</td>').map(c => c ? `<td class="px-6 py-4 text-sm text-slate-600">${c.replace('<td>','')}</td>` : '').join('')}
                     <td class="px-6 py-4 flex gap-2">
-                        <button onclick="viewDetail(${idx})" class="p-1.5 bg-blue-50 text-blue-600 rounded-lg"><i data-lucide="eye" class="w-4 h-4"></i></button>
-                        <button onclick="editData(${idx})" class="p-1.5 bg-amber-50 text-amber-600 rounded-lg"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
-                        <button onclick="deleteData(${idx})" class="p-1.5 bg-red-50 text-red-500 rounded-lg"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        <button onclick="viewDetail(${idx})" class="p-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100"><i data-lucide="eye" class="w-4 h-4"></i></button>
+                        <button onclick="editData(${idx})" class="p-1.5 bg-amber-50 text-amber-600 rounded-lg hover:bg-amber-100"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
+                        <button onclick="deleteData(${idx})" class="p-1.5 bg-red-50 text-red-500 rounded-lg hover:bg-red-100"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                     </td>
                 </tr>`;
             });
+            lucide.createIcons();
         }
 
         function viewDetail(idx) {
             const item = archiveData[currentTab][idx];
             const content = document.getElementById('detail-content');
-            const btnPrint = document.getElementById('btn-print');
             
             if (currentTab === 'surat-masuk') {
-                btnPrint.classList.remove('hidden');
                 content.innerHTML = `
-                    <div class="border-[3px] border-black p-4 bg-white text-black font-serif h-full">
-                        <!-- Kop Surat Dua Logo dari Folder -->
-                        <div class="flex items-center border-b-[5px] border-black pb-4 mb-4">
+                    <div class="border-[3px] border-black p-6 bg-white text-black font-serif h-full">
+                        <!-- KOP SURAT DUA LOGO -->
+                        <div class="flex items-center border-b-[5px] border-black pb-4 mb-6">
                             <div class="w-28 h-28 flex-shrink-0 flex items-center justify-center">
-                                <img src="c:\E-ARSIP BETA\png-clipart-lambang-pramuka-gerakan-pramuka-indonesia-coconut-east-jakarta-coconut-cdr-hand.png" class="max-w-full max-h-full object-contain" alt="Logo Kiri">
+                                <img src="https://en.wikipedia.org/wiki/File:Pramuka,_Tunas_Kelapa.svg" class="max-w-full max-h-full object-contain" alt="Logo Kiri" onerror="this.src='https://via.placeholder.com/100?text=LOGO'">
                             </div>
-                            <div class="flex-1 text-center px-2 kop-header">
-                                <h1 class="font-bold uppercase leading-none">Ikatan Bidan Indonesia (IBI)</h1>
-                                <h2 class="font-black uppercase leading-tight mt-1">Rumah Sakit Ibu dan Anak IBI Surabaya</h2>
-                                <p class="font-bold mt-1 uppercase">Jl. Dupak No. 15 A, Surabaya, Jawa Timur</p>
-                                <p class="font-semibold">Telp: (031) 5323837, 5477277 | Fax: (031) 5450187</p>
+                            <div class="flex-1 text-center px-4">
+                                <h1 class="text-xl font-bold uppercase leading-none">GERAKAN PRAMUKA</h1>
+                                <h2 class="text-2xl font-black uppercase leading-tight mt-1">KWARTIR RANTING PULE</h2>
+                                <p class="text-xs font-bold mt-1 uppercase">Kantor Korwilcam Bidang Pendidikan Kecamatan Pule</p>
+                                <p class="text-[10px] font-semibold">Telp: (+62)853-3157-6472 | Fax: (66362)</p>
                             </div>
                             <div class="w-28 h-28 flex-shrink-0 flex items-center justify-center">
-                                <img src="c:\E-ARSIP BETA\Wosm-Pos.png" class="max-w-full max-h-full object-contain" alt="Logo Kanan">
+                                <img src="https://pramukadiy.or.id/ini-dia-logo-wosm-terbaru-serupa-tapi-tak-sama-slogan-menjadi-ready-for-life/wosm-pos/" alt="Logo Kanan" onerror="this.src='https://via.placeholder.com/100?text=LOGO'">
                             </div>
                         </div>
 
-                        <h3 class="text-center font-black text-2xl underline mb-6 uppercase italic tracking-widest">Lembar Disposisi</h3>
+                        <h3 class="text-center font-black text-2xl underline mb-8 uppercase italic tracking-widest">Lembar Disposisi</h3>
                         
                         <table class="disposisi-table">
                             <tr>
-                                <td width="25%"><strong>No. Agenda:</strong><br><span class="text-xl font-black">#${item.no_agenda}</span></td>
-                                <td width="25%"><strong>Tgl. Terima:</strong><br>${item.tgl_terima}</td>
-                                <td width="50%" class="text-[11px] leading-tight italic">
-                                    Simpan surat asli sebagai lampiran utama.<br>Segera proses dan kembalikan lembar ini ke Sekretariat.
+                                <td width="30%"><strong>No. Agenda:</strong><br><span class="text-2xl font-black">#${item.no_agenda || '-'}</span></td>
+                                <td width="30%"><strong>Tgl. Terima:</strong><br>${item.tgl_terima || '-'}</td>
+                                <td width="40%" class="text-[11px] leading-tight italic text-gray-700">
+                                    Segera proses instruksi di bawah ini dan kembalikan ke sekretariat jika telah selesai.
                                 </td>
                             </tr>
                             <tr>
                                 <td><strong>Asal Surat:</strong></td>
-                                <td colspan="2" class="uppercase font-bold text-lg">${item.terima_dari}</td>
+                                <td colspan="2" class="uppercase font-bold text-lg">${item.terima_dari || '-'}</td>
                             </tr>
                             <tr>
                                 <td><strong>No. Surat:</strong></td>
-                                <td colspan="2">${item.no_surat} <span class="ml-4 font-normal italic">(Tanggal: ${item.tgl_surat})</span></td>
+                                <td colspan="2">${item.no_surat || '-'} <span class="ml-4 font-normal italic">(Tgl: ${item.tgl_surat || '-'})</span></td>
                             </tr>
                             <tr>
-                                <td colspan="3" class="bg-gray-50 border-y-2 border-black">
+                                <td colspan="3" class="bg-gray-50">
                                     <p class="text-[10px] font-bold uppercase mb-1">Perihal:</p>
-                                    <p class="text-base font-bold italic">${item.perihal}</p>
+                                    <p class="text-base font-bold italic">${item.perihal || '-'}</p>
                                 </td>
                             </tr>
                             <tr>
-                                <td colspan="1" class="border-r-2 border-black h-[400px]">
-                                    <p class="text-[10px] font-bold uppercase underline mb-3">Diteruskan Kepada:</p>
+                                <td class="h-[400px]">
+                                    <p class="text-[10px] font-bold uppercase underline mb-4">Diteruskan Kepada:</p>
                                     <div class="space-y-4 text-xs uppercase font-bold">
                                         <div class="flex items-center gap-3"><div class="w-4 h-4 border-2 border-black ${item.ditujukan?.toLowerCase().includes('direktur') ? 'bg-black' : ''}"></div> Direktur</div>
-                                        <div class="flex items-center gap-3"><div class="w-4 h-4 border-2 border-black ${item.ditujukan?.toLowerCase().includes('umum') ? 'bg-black' : ''}"></div> Bag. Umum</div>
+                                        <div class="flex items-center gap-3"><div class="w-4 h-4 border-2 border-black ${item.ditujukan?.toLowerCase().includes('umum') ? 'bg-black' : ''}"></div> Kasubag Umum</div>
                                         <div class="flex items-center gap-3"><div class="w-4 h-4 border-2 border-black ${item.ditujukan?.toLowerCase().includes('medis') ? 'bg-black' : ''}"></div> Yan Medis</div>
                                         <div class="flex items-center gap-3"><div class="w-4 h-4 border-2 border-black ${item.ditujukan?.toLowerCase().includes('keuangan') ? 'bg-black' : ''}"></div> Keuangan</div>
-                                        <div class="mt-8 pt-4 border-t border-dotted border-black text-[10px] lowercase italic font-normal">Keterangan: ${item.ditujukan || '-'}</div>
+                                        <div class="mt-10 pt-4 border-t border-dotted border-black text-[9px] lowercase italic font-normal">Ket: ${item.ditujukan || '-'}</div>
                                     </div>
                                 </td>
                                 <td colspan="2" class="p-6">
                                     <p class="text-[10px] font-bold uppercase underline mb-3">Instruksi / Disposisi:</p>
                                     <div class="italic font-serif leading-relaxed text-lg min-h-[300px]">
-                                        ${item.disposisi || '(Tulis instruksi di sini...)'}
+                                        ${item.disposisi || ''}
                                     </div>
                                     <div class="mt-12 flex justify-end">
                                         <div class="w-56 text-center">
-                                            <p class="text-xs font-bold uppercase mb-16">Tanda Tangan Penerima</p>
+                                            <p class="text-xs font-bold uppercase mb-16">Tanda Tangan,</p>
                                             <div class="border-t border-black pt-1">
-                                                <p class="text-[10px] font-bold italic uppercase">( ........................................ )</p>
+                                                <p class="text-[10px] font-bold uppercase">DIREKTUR RSIA IBI</p>
                                             </div>
                                         </div>
                                     </div>
@@ -408,28 +404,47 @@
                         </table>
                     </div>`;
             } else {
-                btnPrint.classList.add('hidden');
-                content.innerHTML = `<div class="p-10"><h2 class="text-2xl font-bold uppercase mb-6 border-b-2 pb-2">${config[currentTab].title}</h2><div class="grid grid-cols-2 gap-8">${config[currentTab].fields.map(f => `<div><label class="text-[10px] font-bold text-slate-400 uppercase">${f.label}</label><p class="font-bold border-b pb-1 text-slate-800 text-lg">${item[f.name] || '-'}</p></div>`).join('')}</div></div>`;
+                content.innerHTML = `
+                <div class="p-12 bg-white min-h-screen">
+                    <h2 class="text-3xl font-black uppercase mb-8 border-b-4 border-slate-800 pb-2">${config[currentTab].title}</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                        ${config[currentTab].fields.map(f => `
+                            <div class="space-y-1">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">${f.label}</label>
+                                <p class="text-xl font-bold text-slate-800 border-b border-slate-100 pb-2">${item[f.name] || '-'}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>`;
             }
             document.getElementById('detail-modal').classList.add('modal-active');
             lucide.createIcons();
         }
 
         function openModal() {
-            document.getElementById('modal-title').innerText = 'Input ' + config[currentTab].title;
+            const m = document.getElementById('form-modal');
+            document.getElementById('modal-title').innerText = 'Tambah ' + config[currentTab].title;
             document.getElementById('form-edit-index').value = '';
-            document.getElementById('dynamic-form-fields').innerHTML = config[currentTab].fields.map(f => `<div><label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">${f.label}</label>${f.type === 'textarea' ? `<textarea name="${f.name}" class="w-full px-4 py-2 border rounded-xl" rows="3"></textarea>` : `<input type="${f.type}" name="${f.name}" class="w-full px-4 py-2 border rounded-xl">`}</div>`).join('');
+            document.getElementById('dynamic-form-fields').innerHTML = config[currentTab].fields.map(f => `
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1 tracking-wider">${f.label}</label>
+                    ${f.type === 'textarea' ? 
+                        `<textarea name="${f.name}" class="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" rows="3"></textarea>` : 
+                        `<input type="${f.type}" name="${f.name}" class="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">`}
+                </div>`).join('');
             document.getElementById('doc-form').reset();
-            document.getElementById('form-modal').classList.add('modal-active');
+            m.classList.add('modal-active');
         }
 
         function editData(idx) {
             openModal();
             const item = archiveData[currentTab][idx];
-            document.getElementById('modal-title').innerText = 'Update ' + config[currentTab].title;
+            document.getElementById('modal-title').innerText = 'Edit ' + config[currentTab].title;
             document.getElementById('form-edit-index').value = idx;
             const form = document.getElementById('doc-form');
-            config[currentTab].fields.forEach(f => { if(form.elements[f.name]) form.elements[f.name].value = item[f.name] || ''; });
+            config[currentTab].fields.forEach(f => {
+                if(form.elements[f.name]) form.elements[f.name].value = item[f.name] || '';
+            });
         }
 
         function saveData() {
@@ -437,19 +452,36 @@
             const editIdx = document.getElementById('form-edit-index').value;
             const entry = {};
             new FormData(form).forEach((v, k) => entry[k] = v);
-            if (editIdx !== '') archiveData[currentTab][editIdx] = entry; else archiveData[currentTab].unshift(entry);
+            
+            if (editIdx !== '') {
+                archiveData[currentTab][editIdx] = entry;
+            } else {
+                archiveData[currentTab].unshift(entry);
+            }
+            
             localStorage.setItem('archiveData_rsia_v2', JSON.stringify(archiveData));
-            closeModal(); renderTab();
+            closeModal();
+            renderTab();
+        }
+
+        function deleteData(idx) {
+            if(confirm('Hapus data ini secara permanen?')) {
+                archiveData[currentTab].splice(idx, 1);
+                localStorage.setItem('archiveData_rsia_v2', JSON.stringify(archiveData));
+                renderTab();
+            }
         }
 
         function closeModal() { document.getElementById('form-modal').classList.remove('modal-active'); }
         function closeDetailModal() { document.getElementById('detail-modal').classList.remove('modal-active'); }
-        function deleteData(idx) { if(confirm('Hapus data secara permanen?')) { archiveData[currentTab].splice(idx, 1); localStorage.setItem('archiveData_rsia_v2', JSON.stringify(archiveData)); renderTab(); } }
-        function viewDetailFromGlobal(c, i) { currentTab = c; switchTab(c); viewDetail(i); }
+        function viewDetailFromGlobal(c, i) { currentTab = c; renderTab(); viewDetail(i); }
         function filterTable() {
             const val = document.getElementById('table-search').value.toLowerCase();
-            document.getElementById('table-body').querySelectorAll('tr').forEach(r => r.style.display = r.innerText.toLowerCase().includes(val) ? '' : 'none');
+            document.querySelectorAll('#table-body tr').forEach(r => {
+                r.style.display = r.innerText.toLowerCase().includes(val) ? '' : 'none';
+            });
         }
+
         window.onload = init;
     </script>
 </body>
