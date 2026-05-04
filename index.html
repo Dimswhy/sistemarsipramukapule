@@ -15,69 +15,53 @@
         @media print {
             .no-print { display: none !important; }
             body { background: white !important; padding: 0 !important; margin: 0 !important; }
-            
-            .print-container { 
-                width: 210mm !important;
-                margin: 0 auto !important;
-                padding: 10mm !important;
-                border: none !important;
-                display: block !important;
-            }
-            
-            #detail-modal {
-                position: absolute !important;
-                left: 0 !important;
-                top: 0 !important;
-                width: 100% !important;
-                display: block !important;
-                background: white !important;
-            }
-
-            .modal-content-wrapper {
-                box-shadow: none !important;
-                border: none !important;
-                width: 100% !important;
-            }
-
+            .print-container { width: 210mm !important; margin: 0 auto !important; padding: 10mm !important; display: block !important; }
+            #detail-modal { position: absolute !important; left: 0 !important; top: 0 !important; width: 100% !important; display: block !important; background: white !important; }
+            .modal-content-wrapper { box-shadow: none !important; border: none !important; width: 100% !important; }
             @page { size: A4; margin: 0; }
         }
 
-        .disposisi-table {
-            width: 100%;
-            border-collapse: collapse;
-            border: 2px solid black;
-        }
-        .disposisi-table td {
-            border: 1px solid black;
-            padding: 10px;
-            vertical-align: top;
-            color: black;
-        }
+        .disposisi-table { width: 100%; border-collapse: collapse; border: 2px solid black; }
+        .disposisi-table td { border: 1px solid black; padding: 10px; vertical-align: top; color: black; }
 
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         
-        #toast {
-            transition: all 0.3s ease;
-            transform: translateY(100px);
-        }
-        #toast.show {
-            transform: translateY(0);
+        #toast { transition: all 0.3s ease; transform: translateY(100px); }
+        #toast.show { transform: translateY(0); }
+        
+        .loading-overlay {
+            position: fixed; inset: 0; background: rgba(255,255,255,0.7);
+            z-index: 9999; display: flex; align-items: center; justify-content: center;
         }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900">
+    <div id="loading-screen" class="loading-overlay">
+        <div class="flex flex-col items-center gap-4">
+            <i data-lucide="loader-2" class="w-12 h-12 text-blue-600 animate-spin"></i>
+            <p class="font-bold text-slate-700">Menghubungkan ke Cloud...</p>
+        </div>
+    </div>
+
     <div id="app" class="min-h-screen flex flex-col md:flex-row no-print">
         <!-- Sidebar -->
         <aside class="w-full md:w-64 bg-slate-900 text-white flex-shrink-0 shadow-xl z-20">
             <div class="p-8">
                 <h1 class="text-2xl font-bold flex items-center gap-3">
                     <div class="p-2 bg-blue-600 rounded-lg">
-                        <i data-lucide="archive" class="w-6 h-6 text-white"></i>
+                        <i data-lucide="cloud" class="w-6 h-6 text-white"></i>
                     </div>
                     <span>ArsipKita</span>
                 </h1>
                 <p class="text-[10px] text-slate-400 mt-2 uppercase tracking-[0.2em] font-semibold">RSIA IBI SURABAYA</p>
+                <div class="mt-4 px-2 py-1 bg-blue-900/30 rounded border border-blue-500/30">
+                    <p class="text-[8px] text-blue-300 font-bold uppercase tracking-widest">Status Penyimpanan</p>
+                    <p class="text-[10px] text-white font-bold flex items-center gap-1">
+                        <span class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
+                        Cloud Aktif Permanen
+                    </p>
+                </div>
             </div>
             <nav class="mt-4 px-4 space-y-2">
                 <button onclick="switchTab('dashboard')" class="nav-link w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition-all" data-tab="dashboard">
@@ -98,6 +82,10 @@
                     <i data-lucide="clipboard-list" class="w-5 h-5"></i> <span>Notulen Rapat</span>
                 </button>
             </nav>
+            <div class="mt-auto p-8 opacity-50">
+                <p class="text-[10px]">User ID:</p>
+                <p id="user-display-id" class="text-[10px] font-mono break-all">-</p>
+            </div>
         </aside>
 
         <main class="flex-1 flex flex-col min-w-0">
@@ -108,10 +96,10 @@
                 </div>
                 <div class="flex items-center gap-6">
                     <div class="hidden md:flex flex-col text-right">
-                        <span class="text-sm font-bold text-slate-700">Administrator</span>
-                        <span class="text-[10px] text-green-500 font-bold uppercase">Online</span>
+                        <span class="text-sm font-bold text-slate-700">Cloud Admin</span>
+                        <span class="text-[10px] text-blue-500 font-bold uppercase tracking-widest">Sinkronisasi Aman</span>
                     </div>
-                    <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">AD</div>
+                    <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">CA</div>
                 </div>
             </header>
 
@@ -121,8 +109,8 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8" id="stats-container"></div>
                     <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
                         <div class="p-6 border-b flex justify-between items-center">
-                            <h3 class="font-bold text-slate-800">Aktivitas Terbaru</h3>
-                            <span class="text-[10px] bg-slate-100 px-2 py-1 rounded font-bold text-slate-500">REAL-TIME</span>
+                            <h3 class="font-bold text-slate-800">Aktivitas Cloud Terbaru</h3>
+                            <span class="text-[10px] bg-blue-50 px-2 py-1 rounded font-bold text-blue-600 uppercase tracking-tighter">Live Database</span>
                         </div>
                         <div class="overflow-x-auto"><table class="w-full text-left"><tbody id="dashboard-recent-body"></tbody></table></div>
                     </div>
@@ -133,10 +121,10 @@
                     <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
                         <div class="relative w-full md:w-96">
                             <i data-lucide="search" class="absolute left-3 top-2.5 w-4 h-4 text-slate-400"></i>
-                            <input type="text" id="table-search" onkeyup="filterTable()" class="block w-full pl-10 pr-4 py-2 bg-white border rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Cari data...">
+                            <input type="text" id="table-search" onkeyup="filterTable()" class="block w-full pl-10 pr-4 py-2 bg-white border rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Cari data di cloud...">
                         </div>
                         <button onclick="openModal()" class="w-full md:w-auto bg-blue-600 text-white px-6 py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-blue-700 transition-all">
-                            <i data-lucide="plus" class="w-5 h-5"></i> Tambah Data
+                            <i data-lucide="plus" class="w-5 h-5"></i> Tambah Data Baru
                         </button>
                     </div>
                     <div class="bg-white rounded-2xl shadow-sm border overflow-hidden">
@@ -152,28 +140,6 @@
         </main>
     </div>
 
-    <!-- Modal Detail & Print -->
-    <div id="detail-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden items-center justify-center p-0 md:p-4 overflow-y-auto">
-        <div class="bg-white rounded-none md:rounded-3xl w-full max-w-[210mm] shadow-2xl flex flex-col modal-content-wrapper min-h-screen md:min-h-0">
-            <div class="px-8 py-4 border-b bg-white flex justify-between items-center sticky top-0 z-10 no-print">
-                <div class="flex items-center gap-3">
-                    <div class="p-2 bg-blue-50 text-blue-600 rounded-lg"><i data-lucide="printer" class="w-5 h-5"></i></div>
-                    <h3 class="text-lg font-bold text-slate-800">Pratinjau Dokumen</h3>
-                </div>
-                <div class="flex gap-2">
-                    <button id="btn-print" onclick="window.print()" class="bg-slate-900 text-white px-5 py-2 rounded-xl flex items-center gap-2 font-bold text-sm hover:bg-black transition-all">
-                        <i data-lucide="printer" class="w-4 h-4"></i> Cetak
-                    </button>
-                    <button onclick="closeDetailModal()" class="p-2 hover:bg-slate-100 rounded-full transition-all">
-                        <i data-lucide="x" class="w-6 h-6 text-slate-400"></i>
-                    </button>
-                </div>
-            </div>
-            
-            <div id="detail-content" class="bg-white print-container"></div>
-        </div>
-    </div>
-
     <!-- Modal Form -->
     <div id="form-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[110] hidden items-center justify-center p-4 no-print">
         <div class="bg-white rounded-3xl w-full max-w-xl shadow-2xl overflow-hidden flex flex-col">
@@ -183,93 +149,134 @@
             </div>
             <div class="p-8 overflow-y-auto max-h-[70vh]">
                 <form id="doc-form" class="space-y-4">
-                    <input type="hidden" id="form-edit-index">
+                    <input type="hidden" id="form-edit-id">
                     <div id="dynamic-form-fields" class="space-y-4"></div>
                     <div class="pt-4 border-t">
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1 tracking-wider">Lampiran Dokumen (Image/PDF)</label>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1 tracking-wider">Lampiran Cloud (Gambar/PDF)</label>
                         <input type="file" id="file-upload" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" accept="image/*,application/pdf">
-                        <p class="text-[10px] text-slate-400 mt-1" id="file-info">*Maks 2MB (disimpan di browser)</p>
+                        <p class="text-[10px] text-slate-400 mt-1" id="file-info">*File akan disimpan permanen di server cloud.</p>
                     </div>
                 </form>
             </div>
             <div class="px-8 py-6 border-t bg-slate-50 flex justify-end gap-3">
                 <button onclick="closeModal()" class="px-6 py-2 text-slate-600 font-bold hover:text-slate-900 transition-all">Batal</button>
                 <button onclick="handleSave()" id="btn-save" class="px-8 py-2 bg-blue-600 text-white rounded-xl font-bold flex items-center gap-2 hover:bg-blue-700 transition-all">
-                    <span>Simpan Data</span>
+                    <span>Simpan Permanen</span>
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Toast Notification -->
-    <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 z-[200] bg-slate-900 text-white px-6 py-3 rounded-2xl shadow-2xl text-sm font-bold hidden flex items-center gap-3">
-        <div id="toast-icon" class="p-1 rounded-full bg-blue-500"><i data-lucide="check" class="w-4 h-4"></i></div>
-        <span id="toast-msg">Pesan berhasil disimpan</span>
+    <!-- Modal Detail -->
+    <div id="detail-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden items-center justify-center p-0 md:p-4 overflow-y-auto">
+        <div class="bg-white rounded-none md:rounded-3xl w-full max-w-[210mm] shadow-2xl flex flex-col modal-content-wrapper min-h-screen md:min-h-0">
+            <div class="px-8 py-4 border-b bg-white flex justify-between items-center sticky top-0 z-10 no-print">
+                <div class="flex items-center gap-3">
+                    <div class="p-2 bg-blue-50 text-blue-600 rounded-lg"><i data-lucide="printer" class="w-5 h-5"></i></div>
+                    <h3 class="text-lg font-bold text-slate-800">Pratinjau Cloud</h3>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="window.print()" class="bg-slate-900 text-white px-5 py-2 rounded-xl flex items-center gap-2 font-bold text-sm hover:bg-black transition-all">
+                        <i data-lucide="printer" class="w-4 h-4"></i> Cetak
+                    </button>
+                    <button onclick="closeDetailModal()" class="p-2 hover:bg-slate-100 rounded-full transition-all">
+                        <i data-lucide="x" class="w-6 h-6 text-slate-400"></i>
+                    </button>
+                </div>
+            </div>
+            <div id="detail-content" class="bg-white print-container"></div>
+        </div>
     </div>
 
-    <script>
+    <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 z-[200] bg-slate-900 text-white px-6 py-3 rounded-2xl shadow-2xl text-sm font-bold hidden flex items-center gap-3">
+        <div id="toast-icon" class="p-1 rounded-full"><i data-lucide="check" class="w-4 h-4"></i></div>
+        <span id="toast-msg">Success</span>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, addDoc, updateDoc, deleteDoc, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Konfigurasi Firebase
+        const firebaseConfig = JSON.parse(__firebase_config);
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'arsipkita-app';
+
+        let currentUser = null;
+        let allData = [];
         let currentTab = 'dashboard';
-        let archiveData = JSON.parse(localStorage.getItem('archiveData_rsia_v2')) || {
-            'surat-masuk': [], 'surat-keluar': [], 'sk': [], 'notulen': []
-        };
 
         const config = {
-            'surat-masuk': {
-                title: 'Surat Masuk', color: 'blue', icon: 'mail',
-                headers: ['Agenda', 'No. Surat',  'Asal Surat', 'Perihal', 'Aksi'],
+            'surat-masuk': { 
+                title: 'Surat Masuk', 
+                color: 'blue', 
+                icon: 'mail', 
+                headers: ['Agenda', 'Tgl Terima', 'Asal Surat', 'Perihal', 'File', 'Aksi'], 
                 fields: [
-                    { name: 'no_agenda', label: 'Nomor Agenda', type: 'text', placeholder: 'cth: 001/2024' },
-                    { name: 'tgl_terima', label: 'Tanggal Diterima', type: 'date' },
-                    { name: 'terima_dari', label: 'Diterima Dari (Asal)', type: 'text', placeholder: 'Dinas Kesehatan Surabaya' },
-                    { name: 'no_surat', label: 'Nomor Surat', type: 'text', placeholder: '440/123/436.7.2/2024' },
-                    { name: 'tgl_surat', label: 'Tanggal Surat', type: 'date' },
-                    { name: 'perihal', label: 'Perihal', type: 'text', placeholder: 'Undangan Rapat Koordinasi' },
-                    { name: 'ditujukan', label: 'Diteruskan Kepada', type: 'text', placeholder: 'Direktur, Yan Medis' },
-                    { name: 'disposisi', label: 'Instruksi Disposisi', type: 'textarea' }
-                ]
+                    { name: 'no_agenda', label: 'Nomor Agenda', type: 'text' }, 
+                    { name: 'tgl_terima', label: 'Tanggal Diterima', type: 'date' }, 
+                    { name: 'terima_dari', label: 'Asal Surat', type: 'text' }, 
+                    { name: 'no_surat', label: 'Nomor Surat', type: 'text' }, 
+                    { name: 'perihal', label: 'Perihal', type: 'text' }, 
+                    { name: 'ditujukan', label: 'Diteruskan Ke', type: 'text' }, 
+                    { name: 'disposisi', label: 'Disposisi', type: 'textarea' }
+                ] 
             },
-            'surat-keluar': {
-                title: 'Surat Keluar', color: 'emerald', icon: 'send',
-                headers: ['Tgl Surat', 'No. Surat', 'Tujuan', 'Perihal', 'Aksi'],
-                fields: [
-                    { name: 'tgl_surat', label: 'Tanggal Surat', type: 'date' },
-                    { name: 'no_surat', label: 'Nomor Surat', type: 'text', placeholder: '005/RSIA-IBI/V/2024' },
-                    { name: 'kepada', label: 'Tujuan', type: 'text', placeholder: 'Ketua PC IBI Surabaya' },
-                    { name: 'perihal', label: 'Perihal', type: 'text', placeholder: 'Laporan Bulanan' }
-                ]
-            },
-            'sk': {
-                title: 'Surat Keputusan', color: 'purple', icon: 'file-check',
-                headers: ['No. SK', 'Tentang', 'Tanggal', 'Aksi'],
-                fields: [
-                    { name: 'no_sk', label: 'Nomor SK', type: 'text', placeholder: '001/SK/DIR/RSIA-IBI/2024' },
-                    { name: 'tentang', label: 'Tentang', type: 'text', placeholder: 'Penetapan Struktur Organisasi' },
-                    { name: 'tanggal', label: 'Tanggal SK', type: 'date' }
-                ]
-            },
-            'notulen': {
-                title: 'Notulen Rapat', color: 'amber', icon: 'clipboard-list',
-                headers: ['Agenda', 'Tanggal', 'Pimpinan', 'Aksi'],
-                fields: [
-                    { name: 'agenda', label: 'Agenda Rapat', type: 'text', placeholder: 'Rapat Persiapan Akreditasi' },
-                    { name: 'tanggal', label: 'Tanggal Rapat', type: 'date' },
-                    { name: 'pimpinan', label: 'Pimpinan Rapat', type: 'text', placeholder: 'dr. H. Muhammad, Sp.OG' },
-                    { name: 'hasil', label: 'Hasil Ringkasan', type: 'textarea' }
-                ]
+            'surat-keluar': { title: 'Surat Keluar', color: 'emerald', icon: 'send', headers: ['Tgl Surat', 'No. Surat', 'Tujuan', 'Perihal', 'Aksi'], fields: [{ name: 'tgl_surat', label: 'Tanggal Surat', type: 'date' }, { name: 'no_surat', label: 'Nomor Surat', type: 'text' }, { name: 'kepada', label: 'Tujuan', type: 'text' }, { name: 'perihal', label: 'Perihal', type: 'text' }] },
+            'sk': { title: 'Surat Keputusan', color: 'purple', icon: 'file-check', headers: ['No. SK', 'Tentang', 'Tanggal', 'Aksi'], fields: [{ name: 'no_sk', label: 'Nomor SK', type: 'text' }, { name: 'tentang', label: 'Tentang', type: 'text' }, { name: 'tanggal', label: 'Tanggal SK', type: 'date' }] },
+            'notulen': { title: 'Notulen Rapat', color: 'amber', icon: 'clipboard-list', headers: ['Agenda', 'Tanggal', 'Pimpinan', 'Aksi'], fields: [{ name: 'agenda', label: 'Agenda Rapat', type: 'text' }, { name: 'tanggal', label: 'Tanggal Rapat', type: 'date' }, { name: 'pimpinan', label: 'Pimpinan Rapat', type: 'text' }, { name: 'hasil', label: 'Hasil Ringkasan', type: 'textarea' }] }
+        };
+
+        // --- INISIALISASI APLIKASI ---
+        const initApp = async () => {
+            document.getElementById('loading-screen').classList.remove('hidden');
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (err) {
+                console.error("Kesalahan Autentikasi:", err);
+                showToast("Gagal autentikasi cloud", "error");
             }
         };
 
-        window.onload = function() {
-            init();
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                document.getElementById('user-display-id').innerText = user.uid;
+                setupDataListener();
+            }
+        });
+
+        // --- PENDENGAR DATA ---
+        const setupDataListener = () => {
+            if (!currentUser) return;
+            
+            const dataQuery = collection(db, 'artifacts', appId, 'public', 'data', 'documents');
+            
+            onSnapshot(dataQuery, (snapshot) => {
+                allData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderTab();
+                document.getElementById('loading-screen').classList.add('hidden');
+                lucide.createIcons();
+            }, (error) => {
+                console.error("Detail kesalahan snapshot:", error);
+                if (error.code === 'permission-denied') {
+                    showToast("Izin akses cloud ditolak.", "error");
+                } else {
+                    showToast("Gagal memuat data dari cloud", "error");
+                }
+            });
         };
 
-        function init() {
-            lucide.createIcons();
-            document.getElementById('current-date').innerText = new Intl.DateTimeFormat('id-ID', { dateStyle: 'full' }).format(new Date());
-            switchTab('dashboard');
-        }
-
-        function switchTab(tabId) {
+        // --- FUNGSI GLOBAL ---
+        window.switchTab = (tabId) => {
             currentTab = tabId;
             document.querySelectorAll('.nav-link').forEach(el => {
                 const isActive = el.dataset.tab === tabId;
@@ -278,340 +285,244 @@
                 el.classList.toggle('text-slate-400', !isActive);
             });
             renderTab();
-        }
+        };
 
-        function renderTab() {
+        const renderTab = () => {
             const isDashboard = currentTab === 'dashboard';
             document.getElementById('section-dashboard').classList.toggle('hidden', !isDashboard);
             document.getElementById('section-table').classList.toggle('hidden', isDashboard);
-            if (isDashboard) renderDashboard(); else renderTable();
+            
+            if (isDashboard) renderDashboard();
+            else renderTable();
             lucide.createIcons();
-        }
+        };
 
-        function showToast(msg, type = 'success') {
-            const toast = document.getElementById('toast');
-            const icon = document.getElementById('toast-icon');
-            document.getElementById('toast-msg').innerText = msg;
-            icon.className = type === 'success' ? 'p-1 rounded-full bg-emerald-500' : 'p-1 rounded-full bg-red-500';
-            toast.classList.remove('hidden');
-            setTimeout(() => toast.classList.add('show'), 10);
-            setTimeout(() => {
-                toast.classList.remove('show');
-                setTimeout(() => toast.classList.add('hidden'), 300);
-            }, 3000);
-        }
-
-        function renderDashboard() {
-            document.getElementById('page-title').innerText = 'Dashboard';
+        const renderDashboard = () => {
+            document.getElementById('page-title').innerText = 'Dashboard Cloud';
             const stats = [['surat-masuk', 'blue'], ['surat-keluar', 'emerald'], ['sk', 'purple'], ['notulen', 'amber']];
-            document.getElementById('stats-container').innerHTML = stats.map(([key, col]) => `
-                <div class="bg-white p-6 rounded-2xl border border-slate-100 flex items-center gap-5 cursor-pointer hover:shadow-lg transition-all group" onclick="switchTab('${key}')">
-                    <div class="text-${col}-600 bg-${col}-50 w-14 h-14 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110">
+            
+            document.getElementById('stats-container').innerHTML = stats.map(([key, col]) => {
+                const count = allData.filter(d => d.category === key).length;
+                return `
+                <div class="bg-white p-6 rounded-2xl border border-slate-100 flex items-center gap-5 cursor-pointer hover:shadow-lg transition-all" onclick="switchTab('${key}')">
+                    <div class="text-${col}-600 bg-${col}-50 w-14 h-14 rounded-2xl flex items-center justify-center">
                         <i data-lucide="${config[key].icon}" class="w-7 h-7"></i>
                     </div>
-                    <div>
-                        <h3 class="text-slate-500 text-xs font-bold uppercase tracking-wider">${config[key].title}</h3>
-                        <p class="text-3xl font-extrabold text-slate-800">${archiveData[key].length}</p>
-                    </div>
-                </div>`).join('');
+                    <div><h3 class="text-slate-500 text-xs font-bold uppercase">${config[key].title}</h3><p class="text-3xl font-extrabold">${count}</p></div>
+                </div>`;
+            }).join('');
 
             const recentBody = document.getElementById('dashboard-recent-body');
-            recentBody.innerHTML = '';
-            let all = [];
-            Object.keys(archiveData).forEach(cat => archiveData[cat].forEach((item, idx) => all.push({...item, _cat: cat, _idx: idx})));
-            all.sort((a,b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0));
+            const sorted = [...allData].sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp)).slice(0, 8);
             
-            if (all.length === 0) {
-                recentBody.innerHTML = '<tr><td colspan="4" class="p-12 text-center text-slate-400 italic">Belum ada aktivitas data</td></tr>';
+            if (sorted.length === 0) {
+                recentBody.innerHTML = '<tr><td colspan="4" class="p-12 text-center text-slate-400 italic">Database cloud masih kosong.</td></tr>';
             } else {
-                all.slice(0, 8).forEach(item => {
-                    const title = item.perihal || item.tentang || item.agenda || 'Tanpa Judul';
-                    recentBody.innerHTML += `
-                        <tr class="hover:bg-slate-50 border-b border-slate-50 transition-colors">
-                            <td class="px-6 py-4">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-2 h-2 rounded-full bg-${config[item._cat].color}-500"></div>
-                                    <span class="font-bold text-sm text-slate-700 truncate max-w-[200px]">${title}</span>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4"><span class="text-[10px] font-bold px-2 py-1 rounded bg-${config[item._cat].color}-50 text-${config[item._cat].color}-600 uppercase whitespace-nowrap">${config[item._cat].title}</span></td>
-                            <td class="px-6 py-4 text-xs text-slate-500">${item.tgl_terima || item.tgl_surat || item.tanggal || '-'}</td>
-                            <td class="px-6 py-4 text-right">
-                                <button onclick="viewDetailFromGlobal('${item._cat}', ${item._idx})" class="text-blue-600 font-bold text-xs hover:underline">Lihat Detail</button>
-                            </td>
-                        </tr>`;
-                });
+                recentBody.innerHTML = sorted.map(item => `
+                    <tr class="hover:bg-slate-50 border-b border-slate-50 transition-colors">
+                        <td class="px-6 py-4 font-bold text-sm text-slate-700 truncate max-w-[200px]">${item.perihal || item.tentang || item.agenda || 'Tanpa Judul'}</td>
+                        <td class="px-6 py-4"><span class="text-[10px] font-bold px-2 py-1 rounded bg-${config[item.category].color}-50 text-${config[item.category].color}-600 uppercase">${config[item.category].title}</span></td>
+                        <td class="px-6 py-4 text-xs text-slate-500">${item.tgl_terima || item.tgl_surat || item.tanggal || '-'}</td>
+                        <td class="px-6 py-4 text-right"><button onclick="viewDetailFromID('${item.id}')" class="text-blue-600 font-bold text-xs hover:underline">Lihat</button></td>
+                    </tr>`).join('');
             }
-        }
+        };
 
-        function renderTable() {
+        const renderTable = () => {
             document.getElementById('page-title').innerText = config[currentTab].title;
             const head = document.getElementById('table-headers');
             head.innerHTML = `<tr class="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-left">${config[currentTab].headers.map(h => `<th class="px-6 py-4">${h}</th>`).join('')}</tr>`;
             
+            const categoryData = allData.filter(d => d.category === currentTab).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
             const body = document.getElementById('table-body');
-            body.innerHTML = '';
             
-            if (archiveData[currentTab].length === 0) {
-                body.innerHTML = `<tr><td colspan="${config[currentTab].headers.length}" class="p-12 text-center text-slate-400 italic">Tidak ada data di kategori ini</td></tr>`;
+            if (categoryData.length === 0) {
+                body.innerHTML = `<tr><td colspan="${config[currentTab].headers.length}" class="p-12 text-center text-slate-400 italic text-sm">Tidak ada data di kategori ini.</td></tr>`;
                 return;
             }
 
-            archiveData[currentTab].forEach((item, idx) => {
-                let row = '';
-                if (currentTab === 'surat-masuk') row = `<td>#${item.no_agenda}</td><td>${item.no_surat}</td><td>${item.terima_dari}</td><td>${item.perihal}</td>`;
-                else if (currentTab === 'surat-keluar') row = `<td>${item.tgl_surat}</td><td>${item.no_surat}</td><td>${item.kepada}</td><td>${item.perihal}</td>`;
-                else if (currentTab === 'sk') row = `<td>${item.no_sk}</td><td>${item.tentang}</td><td>${item.tanggal}</td>`;
-                else if (currentTab === 'notulen') row = `<td>${item.agenda}</td><td>${item.tanggal}</td><td>${item.pimpinan}</td>`;
+            body.innerHTML = categoryData.map(item => {
+                let cells = [];
+                if (currentTab === 'surat-masuk') {
+                    const hasFile = item.fileData ? `<div class="text-blue-600"><i data-lucide="file-text" class="w-4 h-4"></i></div>` : `<div class="text-slate-300"><i data-lucide="file-x" class="w-4 h-4"></i></div>`;
+                    cells = [`#${item.no_agenda}`, item.tgl_terima || '-', item.terima_dari, item.perihal, hasFile];
+                }
+                else if (currentTab === 'surat-keluar') cells = [item.tgl_surat, item.no_surat, item.kepada, item.perihal];
+                else if (currentTab === 'sk') cells = [item.no_sk, item.tentang, item.tanggal];
+                else if (currentTab === 'notulen') cells = [item.agenda, item.tanggal, item.pimpinan];
 
-                body.innerHTML += `<tr class="hover:bg-slate-50 transition-colors group">
-                    ${row.split('</td>').map(c => c ? `<td class="px-6 py-4 text-sm text-slate-600">${c.replace('<td>','')}</td>` : '').join('')}
-                    <td class="px-6 py-4">
-                        <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button onclick="viewDetail(${idx})" class="p-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100" title="Lihat"><i data-lucide="eye" class="w-4 h-4"></i></button>
-                            <button onclick="editData(${idx})" class="p-1.5 bg-amber-50 text-amber-600 rounded-lg hover:bg-amber-100" title="Edit"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
-                            <button onclick="deleteData(${idx})" class="p-1.5 bg-red-50 text-red-500 rounded-lg hover:bg-red-100" title="Hapus"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                return `<tr class="hover:bg-slate-50 transition-colors group">
+                    ${cells.map(c => `<td class="px-6 py-4 text-sm text-slate-600">${c || '-'}</td>`).join('')}
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex gap-2">
+                            <button onclick="viewDetailFromID('${item.id}')" class="p-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-all" title="Lihat"><i data-lucide="eye" class="w-4 h-4"></i></button>
+                            <button onclick="editDataFromID('${item.id}')" class="p-1.5 bg-amber-50 text-amber-600 rounded-lg hover:bg-amber-100 transition-all" title="Edit"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
+                            <button onclick="deleteDataFromID('${item.id}')" class="p-1.5 bg-red-50 text-red-500 rounded-lg hover:bg-red-100 transition-all" title="Hapus"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                         </div>
                     </td>
                 </tr>`;
-            });
+            }).join('');
             lucide.createIcons();
-        }
+        };
 
-        function filterTable() {
-            const input = document.getElementById('table-search');
-            const filter = input.value.toLowerCase();
-            const rows = document.getElementById('table-body').getElementsByTagName('tr');
-            for (let i = 0; i < rows.length; i++) {
-                const cells = rows[i].getElementsByTagName('td');
-                let found = false;
-                for (let j = 0; j < cells.length - 1; j++) {
-                    if (cells[j].innerText.toLowerCase().indexOf(filter) > -1) { found = true; break; }
+        window.openModal = () => {
+            document.getElementById('form-modal').classList.add('modal-active');
+            document.getElementById('modal-title').innerText = 'Tambah ' + config[currentTab].title;
+            document.getElementById('form-edit-id').value = '';
+            document.getElementById('doc-form').reset();
+            document.getElementById('dynamic-form-fields').innerHTML = config[currentTab].fields.map(f => `
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">${f.label}</label>
+                    ${f.type === 'textarea' ? `<textarea name="${f.name}" class="w-full px-4 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500 transition-all" rows="3"></textarea>` : `<input type="${f.type}" name="${f.name}" class="w-full px-4 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500 transition-all">`}
+                </div>`).join('');
+        };
+
+        window.closeModal = () => document.getElementById('form-modal').classList.remove('modal-active');
+
+        window.handleSave = async () => {
+            if (!currentUser) return showToast("Sesi cloud tidak aktif", "error");
+            
+            const btn = document.getElementById('btn-save');
+            const fileInput = document.getElementById('file-upload');
+            const editId = document.getElementById('form-edit-id').value;
+            const form = document.getElementById('doc-form');
+            const formData = new FormData(form);
+            
+            const entry = { 
+                category: currentTab, 
+                timestamp: new Date().toISOString(),
+                last_updated: new Date().toISOString(),
+                creator_uid: currentUser.uid 
+            };
+            
+            config[currentTab].fields.forEach(f => {
+                entry[f.name] = formData.get(f.name);
+            });
+
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Proses...'; lucide.createIcons();
+
+            try {
+                if (fileInput.files[0]) {
+                    const file = fileInput.files[0];
+                    if (file.size > 800000) throw new Error("File terlalu besar (Maks 800KB)");
+                    entry.fileData = await toBase64(file);
+                    entry.fileType = file.type;
+                } else if (editId) {
+                    // Simpan file lama jika sedang mengedit dan tidak ada file baru
+                    const oldItem = allData.find(d => d.id === editId);
+                    if (oldItem && oldItem.fileData) {
+                        entry.fileData = oldItem.fileData;
+                        entry.fileType = oldItem.fileType;
+                    }
                 }
-                rows[i].style.display = found ? "" : "none";
+
+                if (editId) {
+                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'documents', editId);
+                    await updateDoc(docRef, entry);
+                } else {
+                    const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'documents');
+                    await addDoc(colRef, entry);
+                }
+
+                closeModal();
+                showToast(editId ? "Data Diperbarui" : "Tersimpan Permanen");
+            } catch (err) {
+                console.error("Kesalahan Simpan:", err);
+                showToast(err.message || "Gagal menyimpan", "error");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<span>Simpan Permanen</span>'; lucide.createIcons();
             }
-        }
+        };
 
-        function viewDetailFromGlobal(cat, idx) {
-            currentTab = cat;
-            switchTab(cat);
-            viewDetail(idx);
-        }
+        window.editDataFromID = (id) => {
+            const item = allData.find(d => d.id === id);
+            if (!item) return;
+            openModal();
+            document.getElementById('modal-title').innerText = 'Edit Data Cloud';
+            document.getElementById('form-edit-id').value = id;
+            const form = document.getElementById('doc-form');
+            config[item.category].fields.forEach(f => {
+                if (form.elements[f.name]) form.elements[f.name].value = item[f.name] || '';
+            });
+        };
 
-        function closeDetailModal() {
-            document.getElementById('detail-modal').classList.remove('modal-active');
-        }
+        window.deleteDataFromID = async (id) => {
+            if (confirm("Hapus data permanen dari cloud?")) {
+                try {
+                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'documents', id));
+                    showToast("Data dihapus");
+                } catch (err) { showToast("Gagal menghapus", "error"); }
+            }
+        };
 
-        function closeModal() {
-            document.getElementById('form-modal').classList.remove('modal-active');
-        }
-
-        function viewDetail(idx) {
-            const item = archiveData[currentTab][idx];
+        window.viewDetailFromID = (id) => {
+            const item = allData.find(d => d.id === id);
+            if (!item) return;
             const content = document.getElementById('detail-content');
             
-            if (currentTab === 'surat-masuk') {
+            if (item.category === 'surat-masuk') {
                 content.innerHTML = `
-                    <div class="border-[3px] border-black p-4 md:p-8 bg-white text-black font-serif">
-                        <h3 class="text-center font-black text-2xl underline mb-6 uppercase">Lembar Disposisi</h3>
-                        
+                    <div class="border-[3px] border-black p-8 bg-white text-black font-serif">
+                        <h3 class="text-center font-black text-2xl underline mb-6">LEMBAR DISPOSISI CLOUD</h3>
                         <table class="disposisi-table">
-                            <tr>
-                                <td width="30%"><strong>No. Agenda:</strong><br><span class="text-xl font-black">#${item.no_agenda || '-'}</span></td>
-                                <td width="30%"><strong>Tgl. Terima:</strong><br>${item.tgl_terima || '-'}</td>
-                                <td width="40%" class="text-[10px] leading-tight italic">
-                                    Segera proses instruksi di bawah ini dan kembalikan ke sekretariat.
-                                </td>
-                            </tr>
-                            <tr>
-                                <td><strong>Asal Surat:</strong></td>
-                                <td colspan="2" class="uppercase font-bold">${item.terima_dari || '-'}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>No. Surat:</strong></td>
-                                <td colspan="2">${item.no_surat || '-'} <span class="ml-4 italic">(Tgl: ${item.tgl_surat || '-'})</span></td>
-                            </tr>
-                            <tr>
-                                <td colspan="3" class="bg-slate-50">
-                                    <p class="text-[9px] font-bold uppercase mb-1">Perihal:</p>
-                                    <p class="text-sm font-bold italic">${item.perihal || '-'}</p>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="min-h-[300px]">
-                                    <p class="text-[10px] font-bold uppercase underline mb-4">Diteruskan Kepada:</p>
-                                    <div class="space-y-3 text-[11px] uppercase font-bold">
-                                        <div class="flex items-center gap-2"><div class="w-3.5 h-3.5 border border-black ${item.ditujukan?.toLowerCase().includes('Kakwarran') ? 'bg-black' : ''}"></div> Kakwarran</div>
-                                        <div class="flex items-center gap-2"><div class="w-3.5 h-3.5 border border-black ${item.ditujukan?.toLowerCase().includes('sekretaris') ? 'bg-black' : ''}"></div> Sekretaris</div>
-                                        <div class="flex items-center gap-2"><div class="w-3.5 h-3.5 border border-black ${item.ditujukan?.toLowerCase().includes('Andalan') ? 'bg-black' : ''}"></div> Andalan</div>
-                                        <div class="flex items-center gap-2"><div class="w-3.5 h-3.5 border border-black ${item.ditujukan?.toLowerCase().includes('Binamuda') ? 'bg-black' : ''}"></div> Binamuda</div>
-                                        <div class="flex items-center gap-2"><div class="w-3.5 h-3.5 border border-black ${item.ditujukan?.toLowerCase().includes('Binawasa') ? 'bg-black' : ''}"></div> Binawasa</div>
-                                        <div class="flex items-center gap-2"><div class="w-3.5 h-3.5 border border-black ${item.ditujukan?.toLowerCase().includes('Dewan Kerja Ranting') ? 'bg-black' : ''}"></div> Dewan Kerja Ranting</div>
-                                        <div class="mt-6 pt-2 border-t border-dotted border-black text-[9px] normal-case font-normal italic">Ket: ${item.ditujukan || '-'}</div>
-                                    </div>
-                                </td>
-                                <td colspan="2" class="p-6">
-                                    <p class="text-[10px] font-bold uppercase underline mb-3">Instruksi / Disposisi:</p>
-                                    <div class="italic font-serif leading-relaxed text-base min-h-[200px] whitespace-pre-line">
-                                        ${item.disposisi || ''}
-                                    </div>
-                                    <div class="mt-12 flex justify-end">
-                                        <div class="w-48 text-center">
-                                            <p class="text-[10px] font-bold uppercase mb-12"> Biro Arsip ,</p>
-                                            <div class="border-t border-black pt-1">
-                                                <p class="text-[10px] font-bold">( ........................................ )</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </td>
-                            </tr>
+                            <tr><td><strong>No. Agenda:</strong><br><span class="text-xl font-black">#${item.no_agenda || '-'}</span></td><td><strong>Tgl. Terima:</strong><br>${item.tgl_terima || '-'}</td><td><p class="text-[9px] italic">Arsip Cloud Permanen</p></td></tr>
+                            <tr><td><strong>Asal Surat:</strong></td><td colspan="2" class="uppercase font-bold">${item.terima_dari || '-'}</td></tr>
+                            <tr><td><strong>No. Surat:</strong></td><td colspan="2">${item.no_surat || '-'}</td></tr>
+                            <tr><td colspan="3" class="bg-slate-50"><p class="text-sm font-bold italic">${item.perihal || '-'}</p></td></tr>
+                            <tr><td class="min-h-[200px]"><p class="text-[10px] font-bold underline">Diteruskan Ke:</p><p class="mt-4 text-xs font-bold uppercase">${item.ditujukan || '-'}</p></td><td colspan="2" class="p-6">
+                                <p class="text-[10px] font-bold underline">Instruksi Disposisi:</p><div class="italic text-base min-h-[150px] whitespace-pre-line">${item.disposisi || ''}</div>
+                            </td></tr>
                         </table>
-                        
-                        ${item.fileData ? renderAttachment(item) : ''}
+                        ${renderAttachment(item)}
                     </div>`;
             } else {
                 content.innerHTML = `
                     <div class="p-12 bg-white">
                         <div class="flex justify-between items-start mb-8 border-b-2 border-slate-800 pb-4">
-                            <div>
-                                <h2 class="text-3xl font-black uppercase text-slate-800">${config[currentTab].title}</h2>
-                                <p class="text-slate-500 text-sm font-medium">RSIA IBI Digital Archive</p>
-                            </div>
+                            <div><h2 class="text-3xl font-black uppercase text-slate-800">${config[item.category].title}</h2><p class="text-slate-500 text-sm">Arsip Cloud Permanen</p></div>
                             <img src="https://upload.wikimedia.org/wikipedia/commons/e/e0/Logo_Ikatan_Bidan_Indonesia.png" class="h-16">
                         </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            ${config[currentTab].fields.map(f => `
-                                <div class="space-y-1">
-                                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">${f.label}</label>
-                                    <p class="text-lg font-bold text-slate-800 border-b border-slate-100 pb-1 whitespace-pre-line">${item[f.name] || '-'}</p>
-                                </div>
-                            `).join('')}
+                        <div class="grid grid-cols-2 gap-8">
+                            ${config[item.category].fields.map(f => `<div><label class="text-[10px] font-bold text-slate-400 uppercase">${f.label}</label><p class="text-lg font-bold text-slate-800 border-b border-slate-100 whitespace-pre-line">${item[f.name] || '-'}</p></div>`).join('')}
                         </div>
-                        ${item.fileData ? renderAttachment(item) : ''}
+                        ${renderAttachment(item)}
                     </div>`;
             }
             document.getElementById('detail-modal').classList.add('modal-active');
             lucide.createIcons();
-        }
+        };
 
-        function renderAttachment(item) {
-            return `
-                <div class="mt-8 no-print border-t pt-6">
-                    <h4 class="text-xs font-bold uppercase mb-4 text-blue-600 flex items-center gap-2">
-                        <i data-lucide="paperclip" class="w-4 h-4"></i> Lampiran Dokumen
-                    </h4>
-                    <div class="p-4 bg-slate-50 rounded-2xl border border-dashed border-slate-300">
-                        ${item.fileType?.startsWith('image/') ? 
-                            `<div class="flex flex-col gap-4">
-                                <img src="${item.fileData}" class="max-w-full h-auto rounded-xl shadow-lg border">
-                                <a href="${item.fileData}" download="lampiran-image" class="text-center bg-white border px-4 py-2 rounded-lg text-sm font-bold text-slate-600 hover:bg-slate-50 transition-all flex items-center justify-center gap-2">
-                                    <i data-lucide="download" class="w-4 h-4"></i> Download Gambar
-                                </a>
-                             </div>` :
-                            `<div class="flex items-center justify-between p-6 bg-white rounded-2xl border shadow-sm">
-                                <div class="flex items-center gap-4">
-                                    <div class="p-3 bg-red-50 text-red-500 rounded-xl"><i data-lucide="file-text" class="w-8 h-8"></i></div>
-                                    <div>
-                                        <p class="font-bold text-slate-800">File PDF Terlampir</p>
-                                        <p class="text-xs text-slate-500">Klik tombol di samping untuk mengunduh</p>
-                                    </div>
-                                </div>
-                                <a href="${item.fileData}" download="lampiran-dokumen" class="bg-blue-600 text-white px-6 py-2 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-blue-200">
-                                    <i data-lucide="download" class="w-4 h-4"></i> Download PDF
-                                </a>
-                            </div>`
-                        }
-                    </div>
-                </div>`;
-        }
+        window.closeDetailModal = () => document.getElementById('detail-modal').classList.remove('modal-active');
 
-        function openModal() {
-            const m = document.getElementById('form-modal');
-            document.getElementById('modal-title').innerText = 'Tambah ' + config[currentTab].title;
-            document.getElementById('form-edit-index').value = '';
-            document.getElementById('file-upload').value = '';
-            document.getElementById('file-info').className = "text-[10px] text-slate-400 mt-1";
-            document.getElementById('dynamic-form-fields').innerHTML = config[currentTab].fields.map(f => `
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1 tracking-wider">${f.label}</label>
-                    ${f.type === 'textarea' ? 
-                        `<textarea name="${f.name}" class="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all" rows="4"></textarea>` : 
-                        `<input type="${f.type}" name="${f.name}" class="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all">`}
-                </div>`).join('');
-            document.getElementById('doc-form').reset();
-            m.classList.add('modal-active');
-        }
+        const renderAttachment = (item) => {
+            if (!item.fileData) return '';
+            return `<div class="mt-8 no-print border-t pt-6">
+                <h4 class="text-xs font-bold uppercase mb-4 text-blue-600 flex items-center gap-2"><i data-lucide="paperclip" class="w-4 h-4"></i> Lampiran Cloud</h4>
+                <div class="p-4 bg-slate-50 rounded-2xl border border-dashed border-slate-300">
+                    ${item.fileType?.startsWith('image/') ? `<img src="${item.fileData}" class="max-w-full rounded-xl border">` : `<div class="p-6 bg-white rounded-xl border flex justify-between items-center"><p class="font-bold">File PDF Tersimpan</p><a href="${item.fileData}" download="cloud-archive" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-xs font-bold">Unduh PDF</a></div>`}
+                </div>
+            </div>`;
+        };
 
-        function editData(idx) {
-            openModal();
-            const item = archiveData[currentTab][idx];
-            document.getElementById('modal-title').innerText = 'Edit ' + config[currentTab].title;
-            document.getElementById('form-edit-index').value = idx;
-            const form = document.getElementById('doc-form');
-            config[currentTab].fields.forEach(f => {
-                if(form.elements[f.name]) form.elements[f.name].value = item[f.name] || '';
-            });
-            if (item.fileData) {
-                document.getElementById('file-info').innerText = "File lama tersimpan. Upload baru untuk mengganti.";
-                document.getElementById('file-info').className = "text-[10px] text-blue-500 font-bold mt-1";
-            }
-        }
+        const toBase64 = file => new Promise((resolve, reject) => {
+            const reader = new FileReader(); reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result); reader.onerror = reject;
+        });
 
-        function deleteData(idx) {
-            if (confirm('Apakah Anda yakin ingin menghapus data ini?')) {
-                archiveData[currentTab].splice(idx, 1);
-                saveData(); renderTab(); showToast('Data berhasil dihapus');
-            }
-        }
+        const showToast = (msg, type = 'success') => {
+            const toast = document.getElementById('toast');
+            const icon = document.getElementById('toast-icon');
+            document.getElementById('toast-msg').innerText = msg;
+            icon.className = `p-1 rounded-full ${type === 'success' ? 'bg-emerald-500' : 'bg-red-500'}`;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.classList.add('hidden'), 300); }, 3000);
+        };
 
-        async function handleSave() {
-            const btn = document.getElementById('btn-save');
-            const fileInput = document.getElementById('file-upload');
-            const editIdx = document.getElementById('form-edit-index').value;
-            const form = document.getElementById('doc-form');
-            const formData = new FormData(form);
-            const entry = { timestamp: new Date().toISOString() };
-            let hasEmpty = false;
-            
-            config[currentTab].fields.forEach(f => {
-                const val = formData.get(f.name);
-                if (!val && f.name !== 'disposisi' && f.name !== 'hasil') hasEmpty = true;
-                entry[f.name] = val;
-            });
-
-            if (hasEmpty) { showToast('Mohon lengkapi kolom utama!', 'error'); return; }
-
-            btn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Menghubungkan...';
-            btn.disabled = true; lucide.createIcons();
-
-            try {
-                if (fileInput.files[0]) {
-                    const file = fileInput.files[0];
-                    if (file.size > 2 * 1024 * 1024) throw new Error("File terlalu besar (Maks 2MB)");
-                    entry.fileData = await toBase64(file);
-                    entry.fileType = file.type;
-                } else if (editIdx !== "" && archiveData[currentTab][editIdx].fileData) {
-                    entry.fileData = archiveData[currentTab][editIdx].fileData;
-                    entry.fileType = archiveData[currentTab][editIdx].fileType;
-                }
-                if (editIdx === "") archiveData[currentTab].unshift(entry);
-                else archiveData[currentTab][editIdx] = entry;
-                saveData(); closeModal(); renderTab();
-                showToast(editIdx === "" ? 'Data berhasil ditambahkan' : 'Data berhasil diperbarui');
-            } catch (err) { showToast(err.message, 'error'); } 
-            finally { btn.innerHTML = '<span>Simpan Data</span>'; btn.disabled = false; }
-        }
-
-        function toBase64(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = () => resolve(reader.result);
-                reader.onerror = error => reject(error);
-            });
-        }
-
-        function saveData() { localStorage.setItem('archiveData_rsia_v2', JSON.stringify(archiveData)); }
+        document.getElementById('current-date').innerText = new Intl.DateTimeFormat('id-ID', { dateStyle: 'full' }).format(new Date());
+        initApp();
     </script>
 </body>
 </html>
